@@ -10,6 +10,7 @@ import {
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import BottomNav from "../components/BottomNav";
+import { Ionicons } from "@expo/vector-icons";
 
 type RootStackParamList = {
   Login: undefined;
@@ -29,7 +30,10 @@ const ProfileScreen = () => {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 200 }}>
-        <Text style={styles.title}>Mi Perfil</Text>
+        <View style={styles.header}>
+          <Text style={styles.title}>Mi Perfil</Text>
+          <Ionicons name="person-circle-outline" size={28} color="#111827" />
+        </View>
         <Text style={styles.subtitle}>Especificaciones de tu cuenta</Text>
 
         <View style={styles.card}>
@@ -50,7 +54,10 @@ const ProfileScreen = () => {
 
       <View style={styles.footer}>
         <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
-          <Text style={styles.logoutText}>Cerrar sesión</Text>
+          <View style={styles.logoutContent}>
+            <Ionicons name="log-out-outline" size={20} color="white" />
+            <Text style={styles.logoutText}>Cerrar sesión</Text>
+          </View>
         </TouchableOpacity>
       </View>
 
@@ -66,11 +73,16 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#F9FAFB",
   },
+  header: {
+    flexDirection: "row",  
+    alignItems: "center",  
+    justifyContent: "space-between",
+    marginBottom: 4,
+  },
   title: {
     fontSize: 24,
     fontWeight: "700",
     color: "#111827",
-    marginBottom: 4,
   },
   subtitle: {
     fontSize: 16,
@@ -108,10 +120,18 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 12,
     alignItems: "center",
+    justifyContent: "center",
   },
+
+  logoutContent: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+
   logoutText: {
     color: "white",
     fontSize: 16,
     fontWeight: "600",
+    marginLeft: 8,
   },
 });

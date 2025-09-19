@@ -11,6 +11,7 @@ import {
 import { Colors } from "../theme";
 import BottomNav from "../components/BottomNav";
 import UploadModal from "../components/UploadModal";
+import { Ionicons } from "@expo/vector-icons"; 
 
 const dummyContracts = [
   { id: "1", title: "Contrato de Arrendamiento - Abril", status: "Pendiente" },
@@ -24,7 +25,16 @@ export default function HomeScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.hi}>Hola, Santiago</Text>
+        {/* 👇 Contenedor para el texto y el ícono en la misma línea */}
+        <View style={styles.headerRow}>
+          <Text style={styles.hi}>Hola, Santiago</Text>
+          <Ionicons
+            name="person-circle-outline"
+            size={28}
+            color={Colors.secondary}
+            style={{ marginLeft: 8 }}
+          />
+        </View>
         <Text style={styles.small}>Contratos recientes</Text>
       </View>
 
@@ -75,6 +85,10 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.04,
     shadowRadius: 8,
     elevation: 2,
+  },
+  headerRow: {
+    flexDirection: "row",
+    alignItems: "center",
   },
   cardTitle: { fontWeight: "700", color: Colors.text },
   cardSubtitle: { color: Colors.textSecondary, marginTop: 6 },
