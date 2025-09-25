@@ -5,6 +5,7 @@ import HomeScreen from "../screens/HomeScreen";
 import RegisterScreen from "../screens/RegisterScreen";
 import ProfileScreen from "../screens/ProfileScreen";
 import WelcomeScreen from "../screens/WelcomeScreen";
+import PaymentMethodScreen from "../screens/PaymentMethodsScreen";
 
 type RootStackParamList = {
   Welcome: undefined;
@@ -12,6 +13,7 @@ type RootStackParamList = {
   Home: undefined;
   Register: undefined;
   Profile: undefined;
+  PaymentMethod: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -27,6 +29,7 @@ export default function RootNavigator() {
       <Stack.Screen name="Home" component={HomeScreen} />
       <Stack.Screen name="Register" component={RegisterScreen} />
       <Stack.Screen name="Profile" component={ProfileScreen} />
+      <Stack.Screen name="PaymentMethod" component={PaymentMethodScreen} />
     </Stack.Navigator>
   );
 }

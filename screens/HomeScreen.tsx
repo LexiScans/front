@@ -11,7 +11,7 @@ import {
 import { Colors } from "../theme";
 import BottomNav from "../components/BottomNav";
 import UploadModal from "../components/UploadModal";
-import { Ionicons } from "@expo/vector-icons"; 
+import { Ionicons } from "@expo/vector-icons";
 
 const dummyContracts = [
   { id: "1", title: "Contrato de Arrendamiento - Abril", status: "Pendiente" },
@@ -25,7 +25,6 @@ export default function HomeScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        {/* 👇 Contenedor para el texto y el ícono en la misma línea */}
         <View style={styles.headerRow}>
           <Text style={styles.hi}>Hola, Santiago</Text>
           <Ionicons

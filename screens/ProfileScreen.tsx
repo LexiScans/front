@@ -17,6 +17,7 @@ type RootStackParamList = {
   Home: undefined;
   Register: undefined;
   Profile: undefined;
+  PaymentMethod: undefined;
 };
 
 const ProfileScreen = () => {
@@ -27,14 +28,19 @@ const ProfileScreen = () => {
     navigation.navigate("Login");
   };
 
+  const handlePayment = () => {
+    navigation.navigate("PaymentMethod");
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 200 }}>
         <View style={styles.header}>
-          <Text style={styles.title}>Mi Perfil</Text>
-          <Ionicons name="person-circle-outline" size={28} color="#111827" />
+          <View>
+            <Text style={styles.title}>Mi Perfil</Text>
+          </View>
+          <Ionicons name="person-circle-outline" size={60} color="#111827" />
         </View>
-        <Text style={styles.subtitle}>Especificaciones de tu cuenta</Text>
 
         <View style={styles.card}>
           <Text style={styles.label}>Nombre</Text>
@@ -46,9 +52,27 @@ const ProfileScreen = () => {
           <Text style={styles.value}>santiago@email.com</Text>
         </View>
 
-        <View style={styles.card}>
-          <Text style={styles.label}>Rol</Text>
-          <Text style={styles.value}>Usuario</Text>
+        <View style={styles.paymentSection}>
+          <Text style={styles.sectionTitle}>Métodos de pago</Text>
+          <Text style={styles.sectionSubtitle}>
+            Gestiona tus tarjetas y selecciona la preferida para tu suscripción
+          </Text>
+          <TouchableOpacity style={styles.paymentBtn} onPress={handlePayment}>
+            <Ionicons name="card-outline" size={20} color="white" />
+            <Text style={styles.paymentText}>Gestionar métodos de pago</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.subscriptionCard}>
+          <Ionicons name="star" size={28} color="white" />
+          <Text style={styles.planTitle}>Plan Premium</Text>
+          <Text style={styles.planPeriod}>
+            Activo hasta: <Text style={{ fontWeight: "700" }}>25 Dic 2025</Text>
+          </Text>
+          <Text style={styles.planDescription}>
+            Acceso ilimitado a todas las funciones, soporte prioritario y
+            beneficios exclusivos.
+          </Text>
         </View>
       </ScrollView>
 
@@ -74,20 +98,19 @@ const styles = StyleSheet.create({
     backgroundColor: "#F9FAFB",
   },
   header: {
-    flexDirection: "row",  
-    alignItems: "center",  
+    flexDirection: "row",
+    alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: 4,
+    marginBottom: 20,
   },
   title: {
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: "700",
     color: "#111827",
   },
   subtitle: {
     fontSize: 16,
     color: "#6B7280",
-    marginBottom: 20,
   },
   card: {
     backgroundColor: "white",
@@ -109,6 +132,68 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#111827",
   },
+  subscriptionCard: {
+    backgroundColor: "#6fa7c7ff",
+    borderRadius: 16,
+    padding: 20,
+    marginVertical: 20,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  planTitle: {
+    fontSize: 22,
+    fontWeight: "700",
+    color: "white",
+    marginTop: 8,
+  },
+  planPeriod: {
+    fontSize: 14,
+    color: "white",
+    marginVertical: 4,
+  },
+  planDescription: {
+    fontSize: 14,
+    color: "white",
+    marginTop: 8,
+    lineHeight: 20,
+  },
+  paymentSection: {
+    backgroundColor: "white",
+    padding: 20,
+    borderRadius: 16,
+    marginBottom: 20,
+    shadowColor: "#000",
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#111827",
+    marginBottom: 4,
+  },
+  sectionSubtitle: {
+    fontSize: 14,
+    color: "#6B7280",
+    marginBottom: 16,
+  },
+  paymentBtn: {
+    backgroundColor: "#6fa7c7ff",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 14,
+    borderRadius: 10,
+  },
+  paymentText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "600",
+    marginLeft: 8,
+  },
   footer: {
     position: "absolute",
     bottom: 120,
@@ -122,12 +207,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-
   logoutContent: {
     flexDirection: "row",
     alignItems: "center",
   },
-
   logoutText: {
     color: "white",
     fontSize: 16,
