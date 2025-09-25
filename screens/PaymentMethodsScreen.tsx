@@ -10,6 +10,7 @@ import {
 import { RadioButton } from "react-native-paper";
 import BottomNav from "../components/BottomNav";
 import PaymentCard from "../components/PaymentCard";
+import { useNavigation } from "@react-navigation/native";
 
 const mockCards = [
   {
@@ -36,10 +37,26 @@ const mockCards = [
     expiry: "05/25",
     color: "#1fac84ff",
   },
+  {
+    id: "4",
+    type: "AMEX",
+    number: "3791 324598 76542",
+    holder: "Diana Prince",
+    expiry: "05/25",
+    color: "#dd3737ff",
+  },
 ];
-
 const PaymentMethodsScreen = () => {
   const [selectedCard, setSelectedCard] = useState("1");
+  const navigation = useNavigation();
+
+  const handleSelect = () => {
+    console.log("Tarjeta seleccionada:", selectedCard);
+  };
+
+  const handleAddNew = () => {
+    navigation.navigate("AddPaymentMethod" as never);
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -73,6 +90,14 @@ const PaymentMethodsScreen = () => {
             />
           </TouchableOpacity>
         ))}
+
+        <TouchableOpacity style={styles.selectBtn} onPress={handleSelect}>
+          <Text style={styles.selectText}>Seleccionar</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.addBtn} onPress={handleAddNew}>
+          <Text style={styles.addText}>+ Agregar nuevo método de pago</Text>
+        </TouchableOpacity>
       </ScrollView>
 
       <BottomNav onPressCentral={() => {}} />
@@ -105,5 +130,30 @@ const styles = StyleSheet.create({
   },
   radioWrapper: {
     marginRight: 10,
+  },
+  selectBtn: {
+    backgroundColor: "#2563eb",
+    paddingVertical: 14,
+    borderRadius: 10,
+    alignItems: "center",
+    marginTop: 10,
+  },
+  selectText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  addBtn: {
+    borderColor: "#2563eb",
+    borderWidth: 1.5,
+    paddingVertical: 14,
+    borderRadius: 10,
+    alignItems: "center",
+    marginTop: 12,
+  },
+  addText: {
+    color: "#2563eb",
+    fontSize: 16,
+    fontWeight: "600",
   },
 });
