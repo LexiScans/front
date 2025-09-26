@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -6,56 +6,101 @@ import {
   SafeAreaView,
   ScrollView,
   TouchableOpacity,
+  Alert,
 } from "react-native";
 import { RadioButton } from "react-native-paper";
 import BottomNav from "../components/BottomNav";
 import PaymentCard from "../components/PaymentCard";
 import { useNavigation } from "@react-navigation/native";
 
-const mockCards = [
-  {
-    id: "1",
-    type: "MASTERCARD",
-    number: "9759 2484 5269 6576",
-    holder: "Bruce Wayne",
-    expiry: "12/24",
-    color: "#171717",
-  },
-  {
-    id: "2",
-    type: "VISA",
-    number: "4532 7845 1298 9876",
-    holder: "Clark Kent",
-    expiry: "08/26",
-    color: "#1E3A8A",
-  },
-  {
-    id: "3",
-    type: "AMEX",
-    number: "3791 324598 76542",
-    holder: "Diana Prince",
-    expiry: "05/25",
-    color: "#1fac84ff",
-  },
-  {
-    id: "4",
-    type: "AMEX",
-    number: "3791 324598 76542",
-    holder: "Diana Prince",
-    expiry: "05/25",
-    color: "#dd3737ff",
-  },
-];
+const COLORS = ["#171717", "#1E3A8A", "#1fac84ff", "#dd3737ff"];
+const USER_ID = "f47ac10b-58cc-4372-a567-0e02b2c3d479";
+
 const PaymentMethodsScreen = () => {
-  const [selectedCard, setSelectedCard] = useState("1");
+  const [cards, setCards] = useState<
+    {
+      userId: string;
+      last4: string;
+      color: string;
+      id: string;
+      isDefault: boolean;
+    }[]
+  >([]);
+  const [selectedCard, setSelectedCard] = useState<string | null>(null);
   const navigation = useNavigation();
 
-  const handleSelect = () => {
-    console.log("Tarjeta seleccionada:", selectedCard);
+  const fetchCards = async () => {
+    try {
+      const response = await fetch(
+        `http://10.0.2.2:8080/payment/methods/user/${USER_ID}`
+      );
+      const data = await response.json();
+
+      const cardsWithColor = data.map((item: any) => ({
+        id: item.id,
+        userId: item.userId,
+        last4: item.last4,
+        isDefault: item.isDefault,
+        color: COLORS[Math.floor(Math.random() * COLORS.length)],
+      }));
+
+      setCards(cardsWithColor);
+      if (cardsWithColor.length > 0) setSelectedCard(cardsWithColor[0].id);
+    } catch (err) {
+      console.error("Error al obtener tarjetas:", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchCards();
+  }, []);
+
+  const handleSelect = async () => {
+    if (!selectedCard) {
+      Alert.alert("Error", "No hay tarjeta seleccionada.");
+      return;
+    }
+
+    try {
+      const changeMethod = {
+        userId: USER_ID,
+        customerId: "cus_T7zEmo7WbyrmZW",
+        id: selectedCard,
+      };
+
+      const response = await fetch(
+        `http://10.0.2.2:8080/payment/methods/default`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(changeMethod),
+        }
+      );
+
+      if (!response.ok) throw new Error("Error al cambiar método de pago");
+      Alert.alert("Éxito", "Método de pago actualizado");
+      fetchCards();
+    } catch (err: any) {
+      Alert.alert("Error", err.message);
+    }
   };
 
   const handleAddNew = () => {
     navigation.navigate("AddPaymentMethod" as never);
+  };
+
+  const handleDelete = async (cardId: string) => {
+    try {
+      const response = await fetch(
+        `http://10.0.2.2:8080/payment/methods/${cardId}`,
+        { method: "DELETE" }
+      );
+      if (!response.ok) throw new Error("Error al eliminar tarjeta");
+      Alert.alert("Éxito", "Método de pago eliminado");
+      fetchCards();
+    } catch (err: any) {
+      Alert.alert("Error", err.message);
+    }
   };
 
   return (
@@ -66,29 +111,31 @@ const PaymentMethodsScreen = () => {
           Escoge la tarjeta que será usada para tu suscripción mensual
         </Text>
 
-        {mockCards.map((card) => (
-          <TouchableOpacity
-            key={card.id}
-            activeOpacity={0.8}
-            onPress={() => setSelectedCard(card.id)}
-            style={styles.cardRow}
-          >
-            <View style={styles.radioWrapper}>
-              <RadioButton
-                value={card.id}
-                status={selectedCard === card.id ? "checked" : "unchecked"}
-                onPress={() => setSelectedCard(card.id)}
-                color="#2563eb"
-              />
-            </View>
-            <PaymentCard
-              type={card.type}
-              number={card.number}
-              holder={card.holder}
-              expiry={card.expiry}
-              color={card.color}
+        {cards.map((card) => (
+          <View key={card.id} style={styles.cardRow}>
+            <RadioButton
+              value={card.id}
+              status={selectedCard === card.id ? "checked" : "unchecked"}
+              onPress={() => setSelectedCard(card.id)}
+              color="#2563eb"
             />
-          </TouchableOpacity>
+            <View
+              style={[styles.cardWrapper, card.isDefault && styles.defaultCard]}
+            >
+              {card.isDefault && (
+                <View style={styles.ribbon}>
+                  <Text style={styles.ribbonText}>Predeterminada</Text>
+                </View>
+              )}
+              <PaymentCard number={card.last4} color={card.color} />
+            </View>
+            <TouchableOpacity
+              style={styles.deleteBtn}
+              onPress={() => handleDelete(card.id)}
+            >
+              <Text style={styles.deleteText}>Eliminar</Text>
+            </TouchableOpacity>
+          </View>
         ))}
 
         <TouchableOpacity style={styles.selectBtn} onPress={handleSelect}>
@@ -111,6 +158,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#F9FAFB",
+    marginTop: 60,
   },
   title: {
     fontSize: 24,
@@ -128,8 +176,28 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 20,
   },
-  radioWrapper: {
-    marginRight: 10,
+  cardWrapper: {
+    position: "relative",
+    borderRadius: 8,
+    overflow: "hidden",
+  },
+  defaultCard: {
+    borderWidth: 2,
+    borderColor: "#2563eb",
+  },
+  ribbon: {
+    position: "absolute",
+    top: -2,
+    left: 0,
+    backgroundColor: "#2563eb",
+    paddingVertical: 2,
+    paddingHorizontal: 8,
+    borderBottomRightRadius: 6,
+  },
+  ribbonText: {
+    color: "#fff",
+    fontSize: 12,
+    fontWeight: "700",
   },
   selectBtn: {
     backgroundColor: "#2563eb",
@@ -155,5 +223,16 @@ const styles = StyleSheet.create({
     color: "#2563eb",
     fontSize: 16,
     fontWeight: "600",
+  },
+  deleteBtn: {
+    marginLeft: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    backgroundColor: "#dd3737",
+    borderRadius: 6,
+  },
+  deleteText: {
+    color: "#fff",
+    fontWeight: "700",
   },
 });

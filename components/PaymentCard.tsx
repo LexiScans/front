@@ -12,18 +12,18 @@ const CARD_WIDTH = 280;
 const CARD_HEIGHT = 170;
 
 type PaymentCardProps = {
-  type: string;
-  number: string;
-  holder: string;
-  expiry: string;
+  type?: string;
+  number: string; 
+  holder?: string;
+  expiry?: string;
   color?: string;
 };
 
 export default function PaymentCard({
-  type,
+  type = "",
   number,
-  holder,
-  expiry,
+  holder = "",
+  expiry = "",
   color = "#171717",
 }: PaymentCardProps) {
   const animatedValue = useRef(new Animated.Value(0)).current;
@@ -56,6 +56,8 @@ export default function PaymentCard({
     outputRange: ["180deg", "360deg"],
   });
 
+  const maskedNumber = `**** **** **** ${number}`;
+
   return (
     <TouchableWithoutFeedback onPress={flipCard}>
       <View style={styles.wrapper}>
@@ -76,7 +78,7 @@ export default function PaymentCard({
             style={styles.icon}
           />
 
-          <Text style={styles.number}>{number}</Text>
+          <Text style={styles.number}>{maskedNumber}</Text>
 
           <View style={styles.row}>
             <Text style={styles.date}>{expiry}</Text>
