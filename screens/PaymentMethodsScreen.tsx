@@ -14,7 +14,7 @@ import PaymentCard from "../components/PaymentCard";
 import { useNavigation } from "@react-navigation/native";
 
 const COLORS = ["#171717", "#1E3A8A", "#1fac84ff", "#dd3737ff"];
-const USER_ID = "f47ac10b-58cc-4372-a567-0e02b2c3d479";
+const USER_ID = "45224151-7b09-45ff-835b-413062c2e815";
 
 const PaymentMethodsScreen = () => {
   const [cards, setCards] = useState<
@@ -32,7 +32,7 @@ const PaymentMethodsScreen = () => {
   const fetchCards = async () => {
     try {
       const response = await fetch(
-        `http://10.0.2.2:8080/payment/methods/user/${USER_ID}`
+        `http://10.0.2.2:8081/payment/methods/user/${USER_ID}`
       );
       const data = await response.json();
 
@@ -64,12 +64,12 @@ const PaymentMethodsScreen = () => {
     try {
       const changeMethod = {
         userId: USER_ID,
-        customerId: "cus_T7zEmo7WbyrmZW",
+        customerId: "cus_T94eOMGUfePnLl",
         id: selectedCard,
       };
 
       const response = await fetch(
-        `http://10.0.2.2:8080/payment/methods/default`,
+        `http://10.0.2.2:8081/payment/methods/default`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
@@ -92,7 +92,7 @@ const PaymentMethodsScreen = () => {
   const handleDelete = async (cardId: string) => {
     try {
       const response = await fetch(
-        `http://10.0.2.2:8080/payment/methods/${cardId}`,
+        `http://10.0.2.2:8081/payment/methods/${cardId}`,
         { method: "DELETE" }
       );
       if (!response.ok) throw new Error("Error al eliminar tarjeta");

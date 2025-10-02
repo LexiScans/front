@@ -22,7 +22,7 @@ const AddPaymentMethodScreen = ({ navigation }: any) => {
 
     try {
       const response = await fetch(
-        `http://10.0.2.2:8080/payment/create-setup-intent?customerId=cus_T7zEmo7WbyrmZW`,
+        `http://10.0.2.2:8081/payment/create-setup-intent?customerId=cus_T94eOMGUfePnLl`,
         {
           method: "POST",
         }
@@ -50,14 +50,14 @@ const AddPaymentMethodScreen = ({ navigation }: any) => {
         console.log("PaymentMethod ID:", setupIntent.paymentMethodId);
 
         const addMethodBody = {
-          userId: "f47ac10b-58cc-4372-a567-0e02b2c3d479",
-          customerId: "cus_T7zEmo7WbyrmZW",
+          userId: "45224151-7b09-45ff-835b-413062c2e815",
+          customerId: "cus_T94eOMGUfePnLl",
           paymentMethodId: setupIntent.paymentMethodId,
           defaultPayment: true,
         };
 
         const addMethodResponse = await fetch(
-          "http://10.0.2.2:8080/payment/addMethod",
+          "http://10.0.2.2:8081/payment/addMethod",
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
