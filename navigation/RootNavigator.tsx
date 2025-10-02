@@ -6,7 +6,8 @@ import RegisterScreen from "../screens/RegisterScreen";
 import ProfileScreen from "../screens/ProfileScreen";
 import WelcomeScreen from "../screens/WelcomeScreen";
 import PaymentMethodScreen from "../screens/PaymentMethodsScreen";
-import AddPaymentMethodScreen from "../screens/AddPaymentMethodScreen"; // 👈 importamos el nuevo
+import AddPaymentMethodScreen from "../screens/AddPaymentMethodScreen";
+import BuySubscriptionScreen from "../screens/BuySubscriptionScreen";
 
 type RootStackParamList = {
   Welcome: undefined;
@@ -15,6 +16,7 @@ type RootStackParamList = {
   Register: undefined;
   Profile: undefined;
   PaymentMethod: undefined;
+  BuySubscription: undefined;
   AddPaymentMethod: undefined; 
 };
 
@@ -32,9 +34,8 @@ export default function RootNavigator() {
       <Stack.Screen name="Register" component={RegisterScreen} />
       <Stack.Screen name="Profile" component={ProfileScreen} />
       <Stack.Screen name="PaymentMethod" component={PaymentMethodScreen} />
-      <Stack.Screen
-        name="AddPaymentMethod"
-        component={AddPaymentMethodScreen}
+      <Stack.Screen name="BuySubscription" component={BuySubscriptionScreen} />
+      <Stack.Screen name="AddPaymentMethod" component={AddPaymentMethodScreen}
       />
     </Stack.Navigator>
   );

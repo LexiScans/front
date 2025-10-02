@@ -11,28 +11,32 @@ import {
 import { RadioButton } from "react-native-paper";
 import BottomNav from "../components/BottomNav";
 import PaymentCard from "../components/PaymentCard";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 
 const COLORS = ["#171717", "#1E3A8A", "#1fac84ff", "#dd3737ff"];
 const USER_ID = "f47ac10b-58cc-4372-a567-0e02b2c3d479";
 
 const PaymentMethodsScreen = () => {
   const [cards, setCards] = useState<
-    {
-      userId: string;
-      last4: string;
-      color: string;
-      id: string;
-      isDefault: boolean;
-    }[]
+      {
+        userId: string;
+        last4: string;
+        color: string;
+        id: string;
+        isDefault: boolean;
+      }[]
   >([]);
   const [selectedCard, setSelectedCard] = useState<string | null>(null);
   const navigation = useNavigation();
 
+  // 👇 Mueve useRoute dentro del componente
+  const route = useRoute();
+  const { plan } = route.params as { plan: string };
+
   const fetchCards = async () => {
     try {
       const response = await fetch(
-        `http://10.0.2.2:8080/payment/methods/user/${USER_ID}`
+          `http://10.0.2.2:8080/payment/methods/user/${USER_ID}`
       );
       const data = await response.json();
 
@@ -66,19 +70,20 @@ const PaymentMethodsScreen = () => {
         userId: USER_ID,
         customerId: "cus_T7zEmo7WbyrmZW",
         id: selectedCard,
+        plan: plan, // 👈 envías el plan seleccionado
       };
 
       const response = await fetch(
-        `http://10.0.2.2:8080/payment/methods/default`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(changeMethod),
-        }
+          `http://10.0.2.2:8080/payment/methods/default`,
+          {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(changeMethod),
+          }
       );
 
       if (!response.ok) throw new Error("Error al cambiar método de pago");
-      Alert.alert("Éxito", "Método de pago actualizado");
+      Alert.alert("Éxito", `Método de pago actualizado para el plan ${plan}`);
       fetchCards();
     } catch (err: any) {
       Alert.alert("Error", err.message);
@@ -92,8 +97,8 @@ const PaymentMethodsScreen = () => {
   const handleDelete = async (cardId: string) => {
     try {
       const response = await fetch(
-        `http://10.0.2.2:8080/payment/methods/${cardId}`,
-        { method: "DELETE" }
+          `http://10.0.2.2:8080/payment/methods/${cardId}`,
+          { method: "DELETE" }
       );
       if (!response.ok) throw new Error("Error al eliminar tarjeta");
       Alert.alert("Éxito", "Método de pago eliminado");
@@ -104,51 +109,52 @@ const PaymentMethodsScreen = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 200 }}>
-        <Text style={styles.title}>Gestiona tus métodos de pago</Text>
-        <Text style={styles.subtitle}>
-          Escoge la tarjeta que será usada para tu suscripción mensual
-        </Text>
+      <SafeAreaView style={styles.container}>
+        <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 200 }}>
+          <Text style={styles.title}>Gestiona tus métodos de pago</Text>
+          <Text style={styles.planTitle}>Plan seleccionado: {plan}</Text>
+          <Text style={styles.subtitle}>
+            Escoge la tarjeta que será usada para tu suscripción mensual
+          </Text>
 
-        {cards.map((card) => (
-          <View key={card.id} style={styles.cardRow}>
-            <RadioButton
-              value={card.id}
-              status={selectedCard === card.id ? "checked" : "unchecked"}
-              onPress={() => setSelectedCard(card.id)}
-              color="#2563eb"
-            />
-            <View
-              style={[styles.cardWrapper, card.isDefault && styles.defaultCard]}
-            >
-              {card.isDefault && (
-                <View style={styles.ribbon}>
-                  <Text style={styles.ribbonText}>Predeterminada</Text>
+          {cards.map((card) => (
+              <View key={card.id} style={styles.cardRow}>
+                <RadioButton
+                    value={card.id}
+                    status={selectedCard === card.id ? "checked" : "unchecked"}
+                    onPress={() => setSelectedCard(card.id)}
+                    color="#2563eb"
+                />
+                <View
+                    style={[styles.cardWrapper, card.isDefault && styles.defaultCard]}
+                >
+                  {card.isDefault && (
+                      <View style={styles.ribbon}>
+                        <Text style={styles.ribbonText}>Predeterminada</Text>
+                      </View>
+                  )}
+                  <PaymentCard number={card.last4} color={card.color} />
                 </View>
-              )}
-              <PaymentCard number={card.last4} color={card.color} />
-            </View>
-            <TouchableOpacity
-              style={styles.deleteBtn}
-              onPress={() => handleDelete(card.id)}
-            >
-              <Text style={styles.deleteText}>Eliminar</Text>
-            </TouchableOpacity>
-          </View>
-        ))}
+                <TouchableOpacity
+                    style={styles.deleteBtn}
+                    onPress={() => handleDelete(card.id)}
+                >
+                  <Text style={styles.deleteText}>Eliminar</Text>
+                </TouchableOpacity>
+              </View>
+          ))}
 
-        <TouchableOpacity style={styles.selectBtn} onPress={handleSelect}>
-          <Text style={styles.selectText}>Seleccionar</Text>
-        </TouchableOpacity>
+          <TouchableOpacity style={styles.selectBtn} onPress={handleSelect}>
+            <Text style={styles.selectText}>Seleccionar</Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity style={styles.addBtn} onPress={handleAddNew}>
-          <Text style={styles.addText}>+ Agregar nuevo método de pago</Text>
-        </TouchableOpacity>
-      </ScrollView>
+          <TouchableOpacity style={styles.addBtn} onPress={handleAddNew}>
+            <Text style={styles.addText}>+ Agregar nuevo método de pago</Text>
+          </TouchableOpacity>
+        </ScrollView>
 
-      <BottomNav onPressCentral={() => {}} />
-    </SafeAreaView>
+        <BottomNav onPressCentral={() => {}} />
+      </SafeAreaView>
   );
 };
 
@@ -198,6 +204,12 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 12,
     fontWeight: "700",
+  },
+  planTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#111827",
+    marginBottom: 16,
   },
   selectBtn: {
     backgroundColor: "#2563eb",

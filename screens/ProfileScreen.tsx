@@ -11,12 +11,14 @@ import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import BottomNav from "../components/BottomNav";
 import { Ionicons } from "@expo/vector-icons";
+import BotonEscoger from "../components/BotonEscoger";
 
 type RootStackParamList = {
   Login: undefined;
   Home: undefined;
   Register: undefined;
   Profile: undefined;
+  BuySubscription: undefined;
   PaymentMethod: undefined;
 };
 
@@ -30,6 +32,10 @@ const ProfileScreen = () => {
 
   const handlePayment = () => {
     navigation.navigate("PaymentMethod");
+  };
+
+  const handleBuyPlan = () => {
+    navigation.navigate("BuySubscription");
   };
 
   return (
@@ -64,15 +70,10 @@ const ProfileScreen = () => {
         </View>
 
         <View style={styles.subscriptionCard}>
-          <Ionicons name="star" size={28} color="white" />
-          <Text style={styles.planTitle}>Plan Premium</Text>
-          <Text style={styles.planPeriod}>
-            Activo hasta: <Text style={{ fontWeight: "700" }}>25 Dic 2025</Text>
-          </Text>
-          <Text style={styles.planDescription}>
-            Acceso ilimitado a todas las funciones, soporte prioritario y
-            beneficios exclusivos.
-          </Text>
+          <Ionicons name="star-outline" size={28} color="white" />
+          <Text style={styles.planTitle}>Tu plan:</Text>
+          <Text style={styles.planTitle}>Gratis</Text>
+          <BotonEscoger onPress={handleBuyPlan} />
         </View>
       </ScrollView>
 
