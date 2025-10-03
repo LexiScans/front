@@ -12,6 +12,8 @@ import { RadioButton } from "react-native-paper";
 import BottomNav from "../components/BottomNav";
 import PaymentCard from "../components/PaymentCard";
 import { useNavigation } from "@react-navigation/native";
+import Icon from "react-native-vector-icons/MaterialIcons";
+
 
 const COLORS = ["#171717", "#1E3A8A", "#1fac84ff", "#dd3737ff"];
 const USER_ID = "f47ac10b-58cc-4372-a567-0e02b2c3d479";
@@ -130,10 +132,10 @@ const PaymentMethodsScreen = () => {
               <PaymentCard number={card.last4} color={card.color} />
             </View>
             <TouchableOpacity
-              style={styles.deleteBtn}
-              onPress={() => handleDelete(card.id)}
+                style={styles.deleteBtn}
+                onPress={() => handleDelete(card.id)}
             >
-              <Text style={styles.deleteText}>Eliminar</Text>
+              <Icon name="delete" size={20} color="#fff" />
             </TouchableOpacity>
           </View>
         ))}

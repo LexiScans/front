@@ -59,6 +59,7 @@ const PlanCard = ({
                 {
                     transform: [{ rotateY }],
                     opacity,
+                    backgroundColor: lightenColor(color, 0.8),
                 },
             ]}
         >
@@ -85,6 +86,14 @@ const PlanCard = ({
 };
 
 export default PlanCard;
+
+const lightenColor = (hex: string, amount: number = 0.7) => {
+    let num = parseInt(hex.replace("#", ""), 16);
+    let r = (num >> 16) + Math.round((255 - (num >> 16)) * amount);
+    let g = ((num >> 8) & 0x00ff) + Math.round((255 - ((num >> 8) & 0x00ff)) * amount);
+    let b = (num & 0x0000ff) + Math.round((255 - (num & 0x0000ff)) * amount);
+    return `rgb(${r},${g},${b})`;
+};
 
 const styles = StyleSheet.create({
     card: {

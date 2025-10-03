@@ -6,13 +6,16 @@ import {
   SafeAreaView,
   ScrollView,
   StyleSheet,
-  ActivityIndicator,
+  ActivityIndicator, Alert,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import BottomNav from "../components/BottomNav";
 import { Ionicons } from "@expo/vector-icons";
 import BotonEscoger from "../components/BotonEscoger";
+import BotonCancelar from "../components/BotonCancelar";
+import BotonMejorarPlan from "../components/BotonMejorarPlan";
+
 
 type RootStackParamList = {
   Login: undefined;
@@ -67,6 +70,30 @@ const ProfileScreen = () => {
   const handleBuyPlan = () => {
     navigation.navigate("BuySubscription");
   };
+  const handleCancelSubscription = async () => {
+    try {
+      const response = await fetch(
+          `http://10.0.2.2:8080/users/${userId}/subscription`,
+          { method: "DELETE" }
+      );
+      if (!response.ok) throw new Error("Error al cancelar suscripción");
+      Alert.alert("Éxito", "Tu suscripción ha sido cancelada");
+      setUser({ ...user!, suscription: undefined });
+    } catch (err: any) {
+      Alert.alert("Error", err.message);
+    }
+  };
+
+  const confirmCancel = () => {
+    Alert.alert(
+        "Cancelar suscripción",
+        "¿Estás seguro de que quieres cancelar tu suscripción?",
+        [
+          { text: "No", style: "cancel" },
+          { text: "Sí, cancelar", style: "destructive", onPress: handleCancelSubscription }
+        ]
+    );
+  };
 
   if (loading) {
     return (
@@ -106,6 +133,21 @@ const ProfileScreen = () => {
           </Text>
 
           {!user?.suscription && <BotonEscoger onPress={handleBuyPlan} />}
+          {user?.suscription && (
+              <BotonCancelar onPress={confirmCancel} />
+          )}
+          {user?.suscription && (
+              <BotonCancelar onPress={confirmCancel} />
+          )}
+
+          {user?.suscription?.type && (
+              <BotonMejorarPlan
+                  currentPlan={user.suscription.type}
+                  onPress={(targetPlan) => {
+                    navigation.navigate("BuySubscription");
+                  }}
+              />
+          )}
         </View>
 
         <View style={styles.paymentSection}>
