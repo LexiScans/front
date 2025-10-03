@@ -6,7 +6,8 @@ import {
   SafeAreaView,
   ScrollView,
   StyleSheet,
-  ActivityIndicator, Alert,
+  ActivityIndicator,
+  Alert,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -15,7 +16,6 @@ import { Ionicons } from "@expo/vector-icons";
 import BotonEscoger from "../components/BotonEscoger";
 import BotonCancelar from "../components/BotonCancelar";
 import BotonMejorarPlan from "../components/BotonMejorarPlan";
-
 
 type RootStackParamList = {
   Login: undefined;
@@ -73,8 +73,8 @@ const ProfileScreen = () => {
   const handleCancelSubscription = async () => {
     try {
       const response = await fetch(
-          `http://10.0.2.2:8080/users/${userId}/subscription`,
-          { method: "DELETE" }
+        `http://10.0.2.2:8080/users/${userId}/subscription`,
+        { method: "DELETE" }
       );
       if (!response.ok) throw new Error("Error al cancelar suscripción");
       Alert.alert("Éxito", "Tu suscripción ha sido cancelada");
@@ -86,12 +86,16 @@ const ProfileScreen = () => {
 
   const confirmCancel = () => {
     Alert.alert(
-        "Cancelar suscripción",
-        "¿Estás seguro de que quieres cancelar tu suscripción?",
-        [
-          { text: "No", style: "cancel" },
-          { text: "Sí, cancelar", style: "destructive", onPress: handleCancelSubscription }
-        ]
+      "Cancelar suscripción",
+      "¿Estás seguro de que quieres cancelar tu suscripción?",
+      [
+        { text: "No", style: "cancel" },
+        {
+          text: "Sí, cancelar",
+          style: "destructive",
+          onPress: handleCancelSubscription,
+        },
+      ]
     );
   };
 
@@ -133,20 +137,16 @@ const ProfileScreen = () => {
           </Text>
 
           {!user?.suscription && <BotonEscoger onPress={handleBuyPlan} />}
-          {user?.suscription && (
-              <BotonCancelar onPress={confirmCancel} />
-          )}
-          {user?.suscription && (
-              <BotonCancelar onPress={confirmCancel} />
-          )}
+          {user?.suscription && <BotonCancelar onPress={confirmCancel} />}
+          {user?.suscription && <BotonCancelar onPress={confirmCancel} />}
 
           {user?.suscription?.type && (
-              <BotonMejorarPlan
-                  currentPlan={user.suscription.type}
-                  onPress={(targetPlan) => {
-                    navigation.navigate("BuySubscription");
-                  }}
-              />
+            <BotonMejorarPlan
+              currentPlan={user.suscription.type}
+              onPress={(targetPlan) => {
+                navigation.navigate("BuySubscription");
+              }}
+            />
           )}
         </View>
 
