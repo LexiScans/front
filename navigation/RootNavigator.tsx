@@ -9,6 +9,7 @@ import PaymentMethodScreen from "../screens/PaymentMethodsScreen";
 import AddPaymentMethodScreen from "../screens/AddPaymentMethodScreen";
 import BuySubscriptionScreen from "../screens/BuySubscriptionScreen";
 import PaymentToBuyScreen from "../screens/PaymentToBuyScreen";
+import PdfViewerScreen from "../screens/PdfViewerScreen"; 
 
 type RootStackParamList = {
   Welcome: undefined;
@@ -20,6 +21,7 @@ type RootStackParamList = {
   BuySubscription: undefined;
   AddPaymentMethod: undefined;
   PaymentToBuy: undefined;
+  PdfViewer: undefined; 
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -41,6 +43,10 @@ export default function RootNavigator() {
       <Stack.Screen
         name="AddPaymentMethod"
         component={AddPaymentMethodScreen}
+      />
+      <Stack.Screen
+        name="PdfViewer"
+        component={PdfViewerScreen}
       />
     </Stack.Navigator>
   );

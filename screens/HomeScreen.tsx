@@ -6,12 +6,26 @@ import {
   SafeAreaView,
   FlatList,
   TouchableOpacity,
-  Animated,
 } from "react-native";
 import { Colors } from "../theme";
 import BottomNav from "../components/BottomNav";
 import UploadModal from "../components/UploadModal";
 import { Ionicons } from "@expo/vector-icons";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useNavigation } from "@react-navigation/native";
+
+type RootStackParamList = {
+  Welcome: undefined;
+  Login: undefined;
+  Home: undefined;
+  Register: undefined;
+  Profile: undefined;
+  PaymentMethod: undefined;
+  BuySubscription: undefined;
+  AddPaymentMethod: undefined;
+  PaymentToBuy: undefined;
+  PdfViewer: undefined;
+};
 
 const dummyContracts = [
   { id: "1", title: "Contrato de Arrendamiento - Abril", status: "Pendiente" },
@@ -21,6 +35,13 @@ const dummyContracts = [
 
 export default function HomeScreen() {
   const [modalVisible, setModalVisible] = useState(false);
+
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+
+  const openPdfViewer = () => {
+    navigation.navigate("PdfViewer");
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -42,7 +63,11 @@ export default function HomeScreen() {
         contentContainerStyle={{ padding: 20 }}
         keyExtractor={(i) => i.id}
         renderItem={({ item }) => (
-          <TouchableOpacity activeOpacity={0.9} style={styles.card}>
+          <TouchableOpacity
+            activeOpacity={0.9}
+            style={styles.card}
+            onPress={openPdfViewer}
+          >
             <View>
               <Text style={styles.cardTitle}>{item.title}</Text>
               <Text style={styles.cardSubtitle}>{item.status}</Text>
