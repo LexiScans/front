@@ -17,7 +17,7 @@ export default BotonEscoger;
 
 const styles = StyleSheet.create({
     button: {
-        backgroundColor: "#6fa7c7ff",
+        backgroundColor: "#0b2e42ff",
         paddingVertical: 14,
         borderRadius: 12,
         alignItems: "center",

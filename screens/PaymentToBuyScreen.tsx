@@ -11,12 +11,12 @@ import {
 import { RadioButton } from "react-native-paper";
 import BottomNav from "../components/BottomNav";
 import PaymentCard from "../components/PaymentCard";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 
 const COLORS = ["#171717", "#1E3A8A", "#1fac84ff", "#dd3737ff"];
-const USER_ID = "f47ac10b-58cc-4372-a567-0e02b2c3d479";
+const USER_ID = "45224151-7b09-45ff-835b-413062c2e815";
 
-const PaymentMethodsScreen = () => {
+const PaymentToBuyScreen = () => {
   const [cards, setCards] = useState<
     {
       userId: string;
@@ -27,7 +27,10 @@ const PaymentMethodsScreen = () => {
     }[]
   >([]);
   const [selectedCard, setSelectedCard] = useState<string | null>(null);
-  const navigation = useNavigation();
+
+
+  const route = useRoute();
+  const { plan } = route.params as { plan: string };
 
   const fetchCards = async () => {
     try {
@@ -55,49 +58,25 @@ const PaymentMethodsScreen = () => {
     fetchCards();
   }, []);
 
-  const handleSelect = async () => {
-    if (!selectedCard) {
-      Alert.alert("Error", "No hay tarjeta seleccionada.");
-      return;
-    }
-
+  const crearSuscripcion = async () => {
     try {
-      const changeMethod = {
+      const nuevaSuscripcion = {
         userId: "45224151-7b09-45ff-835b-413062c2e815",
-        customerId: "cus_T7zEmo7WbyrmZW",
-        id: selectedCard,
+        namePlan: plan,
       };
 
-      const response = await fetch(
-        `http://10.0.2.2:8081/payment/methods/default`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(changeMethod),
-        }
-      );
+      const response = await fetch("http://10.0.2.2:8080/suscriptions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(nuevaSuscripcion),
+      });
 
-      if (!response.ok) throw new Error("Error al cambiar método de pago");
-      Alert.alert("Éxito", "Método de pago actualizado");
-      fetchCards();
-    } catch (err: any) {
-      Alert.alert("Error", err.message);
-    }
-  };
+      if (!response.ok) {
+        throw new Error("Error al crear la suscripción");
+      }
 
-  const handleAddNew = () => {
-    navigation.navigate("AddPaymentMethod" as never);
-  };
-
-  const handleDelete = async (cardId: string) => {
-    try {
-      const response = await fetch(
-        `http://10.0.2.2:8081/payment/methods/${cardId}`,
-        { method: "DELETE" }
-      );
-      if (!response.ok) throw new Error("Error al eliminar tarjeta");
-      Alert.alert("Éxito", "Método de pago eliminado");
-      fetchCards();
+      const data = await response.json();
+      Alert.alert("Éxito", `Suscripción creada: ${JSON.stringify(data)}`);
     } catch (err: any) {
       Alert.alert("Error", err.message);
     }
@@ -107,6 +86,7 @@ const PaymentMethodsScreen = () => {
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 200 }}>
         <Text style={styles.title}>Gestiona tus métodos de pago</Text>
+        <Text style={styles.planTitle}>Plan seleccionado: {plan}</Text>
         <Text style={styles.subtitle}>
           Escoge la tarjeta que será usada para tu suscripción mensual
         </Text>
@@ -129,21 +109,11 @@ const PaymentMethodsScreen = () => {
               )}
               <PaymentCard number={card.last4} color={card.color} />
             </View>
-            <TouchableOpacity
-              style={styles.deleteBtn}
-              onPress={() => handleDelete(card.id)}
-            >
-              <Text style={styles.deleteText}>Eliminar</Text>
-            </TouchableOpacity>
           </View>
         ))}
 
-        <TouchableOpacity style={styles.selectBtn} onPress={handleSelect}>
-          <Text style={styles.selectText}>Seleccionar</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.addBtn} onPress={handleAddNew}>
-          <Text style={styles.addText}>+ Agregar nuevo método de pago</Text>
+        <TouchableOpacity style={styles.selectBtn} onPress={crearSuscripcion}>
+          <Text style={styles.selectText}>Pagar</Text>
         </TouchableOpacity>
       </ScrollView>
 
@@ -152,7 +122,7 @@ const PaymentMethodsScreen = () => {
   );
 };
 
-export default PaymentMethodsScreen;
+export default PaymentToBuyScreen;
 
 const styles = StyleSheet.create({
   container: {
@@ -198,6 +168,12 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 12,
     fontWeight: "700",
+  },
+  planTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#111827",
+    marginBottom: 16,
   },
   selectBtn: {
     backgroundColor: "#2563eb",

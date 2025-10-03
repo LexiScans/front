@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -6,6 +6,7 @@ import {
   SafeAreaView,
   ScrollView,
   StyleSheet,
+  ActivityIndicator,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -22,9 +23,38 @@ type RootStackParamList = {
   PaymentMethod: undefined;
 };
 
+type UserData = {
+  name: string;
+  email: string;
+  suscription?: {
+    type: string;
+    price: string;
+    creationDate: string;
+    endDate: string;
+    ncontracts: number;
+    nquestions: number;
+  };
+};
+
 const ProfileScreen = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+
+  const [user, setUser] = useState<UserData | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const userId = "45224151-7b09-45ff-835b-413062c2e815";
+
+  useEffect(() => {
+    fetch(`http://10.0.2.2:8080/users/${userId}`)
+      .then((res) => res.json())
+      .then((data) => {
+        console.log("Datos desde backend:", data);
+        setUser(data);
+      })
+      .catch((err) => console.error("Error al obtener usuario:", err))
+      .finally(() => setLoading(false));
+  }, []);
 
   const handleLogout = () => {
     navigation.navigate("Login");
@@ -38,6 +68,14 @@ const ProfileScreen = () => {
     navigation.navigate("BuySubscription");
   };
 
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <ActivityIndicator size="large" color="#6fa7c7ff" />
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 200 }}>
@@ -50,12 +88,24 @@ const ProfileScreen = () => {
 
         <View style={styles.card}>
           <Text style={styles.label}>Nombre</Text>
-          <Text style={styles.value}>Santiago Coronado</Text>
+          <Text style={styles.value}>{user?.name}</Text>
         </View>
 
         <View style={styles.card}>
           <Text style={styles.label}>Correo</Text>
-          <Text style={styles.value}>santiago@email.com</Text>
+          <Text style={styles.value}>{user?.email}</Text>
+        </View>
+        <View style={styles.subscriptionCard}>
+          <Ionicons name="star-outline" size={28} color="white" />
+          <Text style={styles.planTitle}>Tu plan:</Text>
+          <Text style={styles.planTitle}>
+            {user?.suscription?.type || "Gratis"}
+          </Text>
+          <Text style={styles.planPeriod}>
+            Válido hasta: {user?.suscription?.endDate || "N/A"}
+          </Text>
+
+          {!user?.suscription && <BotonEscoger onPress={handleBuyPlan} />}
         </View>
 
         <View style={styles.paymentSection}>
@@ -67,13 +117,6 @@ const ProfileScreen = () => {
             <Ionicons name="card-outline" size={20} color="white" />
             <Text style={styles.paymentText}>Gestionar métodos de pago</Text>
           </TouchableOpacity>
-        </View>
-
-        <View style={styles.subscriptionCard}>
-          <Ionicons name="star-outline" size={28} color="white" />
-          <Text style={styles.planTitle}>Tu plan:</Text>
-          <Text style={styles.planTitle}>Gratis</Text>
-          <BotonEscoger onPress={handleBuyPlan} />
         </View>
       </ScrollView>
 
@@ -108,10 +151,6 @@ const styles = StyleSheet.create({
     fontSize: 26,
     fontWeight: "700",
     color: "#111827",
-  },
-  subtitle: {
-    fontSize: 16,
-    color: "#6B7280",
   },
   card: {
     backgroundColor: "white",
@@ -153,12 +192,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "white",
     marginVertical: 4,
-  },
-  planDescription: {
-    fontSize: 14,
-    color: "white",
-    marginTop: 8,
-    lineHeight: 20,
   },
   paymentSection: {
     backgroundColor: "white",
