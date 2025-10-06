@@ -100,6 +100,7 @@ const styles = StyleSheet.create({
     left: "63%",
     transform: [{ translateX: -36 }],
     top: -20,
+    zIndex: 2,
   },
   centerBtn: {
     width: 72,

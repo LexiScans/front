@@ -18,88 +18,123 @@ const ContractCard: React.FC<ContractCardProps> = ({
   const getStatusStyle = () => {
     switch (status) {
       case "Firmado":
-        return { backgroundColor: "#28a745", borderColor: "#28a745" };
+        return { label: "Firmado", color: "#16a34a", background: "#e8f9f0" };
       case "Procesando":
-        return { backgroundColor: "#fd7e14", borderColor: "#fd7e14" };
+        return { label: "Procesando", color: "#f97316", background: "#fff2e7" };
       case "Analizado":
-        return { backgroundColor: "#007bff", borderColor: "#007bff" };
+        return { label: "Analizado", color: "#2563eb", background: "#e7f0ff" };
       case "Pendiente":
-        return { backgroundColor: "#6c757d", borderColor: "#6c757d" };
+        return { label: "Pendiente", color: "#6b7280", background: "#f4f4f4" };
       default:
-        return { backgroundColor: "#6c757d", borderColor: "#6c757d" };
+        return { label: status, color: "#6b7280", background: "#f4f4f4" };
     }
   };
 
+  const statusInfo = getStatusStyle();
+
   return (
-    <TouchableOpacity
-      style={[styles.card, { borderLeftColor: getStatusStyle().borderColor }]}
-      activeOpacity={0.9}
-      onPress={onPress}
-    >
-      <View style={{ flex: 1 }}>
-        <Text style={styles.contractLabel}>Contrato</Text>
-        <Text style={styles.title}>{title}</Text>
-        <Text style={styles.type}>Tipo: {type}</Text>
-        <View
-          style={[
-            styles.statusBadge,
-            { backgroundColor: getStatusStyle().backgroundColor },
-          ]}
-        >
-          <Text style={styles.statusText}>{status}</Text>
+    <TouchableOpacity activeOpacity={0.88} onPress={onPress}>
+      <View style={[styles.card, { borderColor: statusInfo.color }]}>
+        {/* Header del contrato */}
+        <View style={styles.header}>
+          <View style={styles.iconContainer}>
+            <Ionicons name="document-text-outline" size={26} color="#074468" />
+          </View>
+          <View style={styles.textContainer}>
+            <Text style={styles.label}>Contrato</Text>
+            <Text style={styles.title}>{title}</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
+        </View>
+
+        {/* Línea divisoria sutil */}
+        <View style={styles.divider} />
+
+        {/* Info secundaria */}
+        <View style={styles.footer}>
+          <Text style={styles.typeText}>Tipo: {type}</Text>
+          <View
+            style={[
+              styles.statusBadge,
+              {
+                backgroundColor: statusInfo.background,
+              },
+            ]}
+          >
+            <Text style={[styles.statusText, { color: statusInfo.color }]}>
+              {statusInfo.label}
+            </Text>
+          </View>
         </View>
       </View>
-      <Ionicons name="chevron-forward" size={22} color="#999" />
     </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: "#fff",
-    padding: 18,
-    borderRadius: 16,
-    marginBottom: 14,
-    flexDirection: "row",
-    alignItems: "center",
+    backgroundColor: "#ffffff",
+    borderRadius: 20,
+    borderWidth: 1.3,
+    borderColor: "#e5e7eb",
+    marginBottom: 18,
+    paddingHorizontal: 18,
+    paddingVertical: 14,
     shadowColor: "#000",
     shadowOpacity: 0.08,
-    shadowRadius: 8,
+    shadowRadius: 10,
     shadowOffset: { width: 0, height: 4 },
     elevation: 4,
-    borderLeftWidth: 6,
   },
-  contractLabel: {
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  iconContainer: {
+    backgroundColor: "#eaf4f9",
+    padding: 10,
+    borderRadius: 14,
+    marginRight: 12,
+  },
+  textContainer: {
+    flex: 1,
+  },
+  label: {
     fontSize: 12,
-    fontWeight: "600",
-    color: "#999",
-    marginBottom: 2,
+    color: "#6b7280",
     textTransform: "uppercase",
-    letterSpacing: 0.5,
+    letterSpacing: 0.8,
+    fontWeight: "600",
   },
   title: {
-    fontSize: 17,
+    fontSize: 18,
     fontWeight: "700",
-    color: "#222",
-    marginBottom: 4,
+    color: "#111827",
+    marginTop: 2,
   },
-  type: {
+  divider: {
+    height: 1,
+    backgroundColor: "#f1f1f1",
+    marginVertical: 12,
+  },
+  footer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  typeText: {
     fontSize: 14,
-    color: "#555",
-    marginBottom: 10,
+    color: "#4b5563",
   },
   statusBadge: {
-    alignSelf: "flex-start",
-    paddingVertical: 5,
-    paddingHorizontal: 14,
-    borderRadius: 50,
+    borderRadius: 30,
+    paddingVertical: 6,
+    paddingHorizontal: 16,
   },
   statusText: {
-    fontSize: 12,
-    fontWeight: "700",
-    color: "#fff",
-    textTransform: "uppercase",
-    letterSpacing: 0.6,
+    fontSize: 13,
+    fontWeight: "600",
+    textTransform: "capitalize",
   },
 });
 
