@@ -6,6 +6,7 @@ import {
   StyleSheet,
   Platform,
   Animated,
+  Dimensions,
 } from "react-native";
 import { Colors } from "../theme";
 import { Ionicons } from "@expo/vector-icons";
@@ -22,6 +23,9 @@ type RootStackParamList = {
 type Props = {
   onPressCentral: () => void;
 };
+
+const { width } = Dimensions.get("window");
+const buttonSize = 72;
 
 export default function BottomNav({ onPressCentral }: Props) {
   const scaleAnim = useRef(new Animated.Value(1)).current;
@@ -97,15 +101,14 @@ const styles = StyleSheet.create({
   tabLabel: { fontSize: 11, color: Colors.textSecondary, marginTop: 2 },
   centerWrap: {
     position: "absolute",
-    left: "63%",
-    transform: [{ translateX: -36 }],
     top: -20,
+    left: width / 2 - buttonSize / 2,
     zIndex: 2,
   },
   centerBtn: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
+    width: buttonSize,
+    height: buttonSize,
+    borderRadius: buttonSize / 2,
     backgroundColor: Colors.accent,
     alignItems: "center",
     justifyContent: "center",
