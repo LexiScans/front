@@ -5,19 +5,18 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
-  Dimensions,
   PanResponder,
-  StyleSheet,
   Platform,
 } from "react-native";
 import { WebView } from "react-native-webview";
 import { Svg, Path } from "react-native-svg";
 import { useNavigation } from "@react-navigation/native";
-import ChatModal from "../components/pdfView/ChatModal";
-import SignatureModal from "../components/pdfView/SignatureModal";
-import ConfirmSignatureModal from "../components/pdfView/ConfirmSignatureModal";
-import SuccessModal from "../components/pdfView/SuccessModal";
-import WarningModal from "../components/pdfView/WarningModal";
+import ChatModal from "../../components/pdfView/ChatModal";
+import SignatureModal from "../../components/pdfView/SignatureModal";
+import ConfirmSignatureModal from "../../components/pdfView/ConfirmSignatureModal";
+import SuccessModal from "../../components/pdfView/SuccessModal";
+import WarningModal from "../../components/pdfView/WarningModal";
+import { styles } from "./styles";
 
 const PdfViewerScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -37,11 +36,14 @@ const PdfViewerScreen: React.FC = () => {
   >([]);
   const [placingSignature, setPlacingSignature] = useState(false);
   const [signaturePosition, setSignaturePosition] = useState({ x: 50, y: 100 });
+  const [signatureBase64, setSignatureBase64] = useState<string | null>(null);
 
   const scrollViewRef = useRef<ScrollView>(null);
   const webViewRef = useRef<WebView>(null);
 
-  const pdfUrl = "https://cimav.edu.mx/pnt/LGPDPPSO/2.2.2.pdf";
+  const [pdfUrl, setPdfUrl] = useState(
+    "https://lexiscan.blob.core.windows.net/pdfs/contrato%20para%20lexisacn.pdf?sv=2024-08-04&se=2025-10-08T20%3A56%3A24Z&sr=b&sp=r&sig=HtO4tALpxH2t2QKkFjuGaYafREiqkzAGskDhi737Nxw%3D&rscd=inline&rsct=application%2Fpdf"
+  );
   const viewerUrl = `https://docs.google.com/gview?embedded=true&url=${encodeURIComponent(
     pdfUrl
   )}`;
@@ -96,17 +98,36 @@ const PdfViewerScreen: React.FC = () => {
     setConfirmModalVisible(true);
   }, []);
 
-  const handleFinalSignature = useCallback(() => {
+  const handleFinalSignature = useCallback(async () => {
+    if (!signatureBase64) {
+      setWarningModalVisible(true);
+      return;
+    }
     setIsSigning(true);
-
-    setTimeout(() => {
-      setIsSigning(false);
+    try {
+      const payload = {
+        contractId: "fa85d36f-9034-4698-84c8-f960bd7d66a9",
+        signatureBase64,
+        x: signaturePosition.x,
+        y: signaturePosition.y,
+      };
+      const response = await fetch("http://10.0.2.2:8083/contracts/sign", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await response.json();
+      setPdfUrl(data.signedUrl);
+      setSuccessModalVisible(true);
       setConfirmModalVisible(false);
       setPlacingSignature(false);
-
-      setSuccessModalVisible(true);
-    }, 2000);
-  }, []);
+    } catch (error) {
+      console.error("Error enviando firma:", error);
+      setWarningModalVisible(true);
+    } finally {
+      setIsSigning(false);
+    }
+  }, [signatureBase64, signaturePosition]);
 
   const handleSuccessModalClose = useCallback(() => {
     setSuccessModalVisible(false);
@@ -122,12 +143,10 @@ const PdfViewerScreen: React.FC = () => {
       return paths
         .map((path, index) => {
           if (path.length === 0) return null;
-
           let d = `M ${path[0].x * scale} ${path[0].y * scale}`;
           for (let i = 1; i < path.length; i++) {
             d += ` L ${path[i].x * scale} ${path[i].y * scale}`;
           }
-
           return (
             <Path
               key={index}
@@ -154,15 +173,14 @@ const PdfViewerScreen: React.FC = () => {
             <Text style={styles.loadingText}>Cargando contrato...</Text>
           </View>
         )}
-
         <ScrollView
           ref={scrollViewRef}
           horizontal
           pagingEnabled
           style={styles.scrollView}
-          showsHorizontalScrollIndicator={true}
+          showsHorizontalScrollIndicator
           showsVerticalScrollIndicator={false}
-          directionalLockEnabled={true}
+          directionalLockEnabled
           decelerationRate="fast"
           snapToAlignment="center"
         >
@@ -171,10 +189,10 @@ const PdfViewerScreen: React.FC = () => {
             source={{ uri: viewerUrl }}
             style={styles.webview}
             onLoadEnd={handleLoadEnd}
-            javaScriptEnabled={true}
-            domStorageEnabled={true}
-            startInLoadingState={true}
-            cacheEnabled={true}
+            javaScriptEnabled
+            domStorageEnabled
+            startInLoadingState
+            cacheEnabled
             cacheMode="LOAD_CACHE_ELSE_NETWORK"
           />
         </ScrollView>
@@ -183,10 +201,7 @@ const PdfViewerScreen: React.FC = () => {
           <View
             style={[
               styles.signatureOverlay,
-              {
-                top: signaturePosition.y,
-                left: signaturePosition.x,
-              },
+              { top: signaturePosition.y, left: signaturePosition.x },
             ]}
             {...moveResponder.panHandlers}
           >
@@ -202,8 +217,8 @@ const PdfViewerScreen: React.FC = () => {
           ref={scrollViewRef}
           style={styles.bottomScrollView}
           contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={true}
-          nestedScrollEnabled={true}
+          showsVerticalScrollIndicator
+          nestedScrollEnabled
           overScrollMode="always"
           removeClippedSubviews={Platform.OS === "android"}
         >
@@ -278,6 +293,7 @@ const PdfViewerScreen: React.FC = () => {
         onConfirm={handleSignatureConfirm}
         onSignatureChange={setSignaturePaths}
         initialPaths={signaturePaths}
+        onSignatureBase64={setSignatureBase64}
       />
 
       <ConfirmSignatureModal
@@ -303,161 +319,5 @@ const PdfViewerScreen: React.FC = () => {
     </View>
   );
 };
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-  },
-  webviewContainer: {
-    flex: 0.65,
-    backgroundColor: "#fafafa",
-    position: "relative",
-  },
-  scrollView: {
-    flex: 1,
-  },
-  webview: {
-    width: Dimensions.get("window").width,
-    height: Dimensions.get("window").height * 0.65,
-  },
-  loadingContainer: {
-    position: "absolute",
-    top: 0,
-    bottom: 0,
-    left: 0,
-    right: 0,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(255,255,255,0.8)",
-    zIndex: 10,
-  },
-  loadingText: {
-    marginTop: 8,
-    color: "#555",
-    fontSize: 15,
-  },
-  bottomSection: {
-    flex: 0.35,
-    paddingHorizontal: 18,
-  },
-  bottomScrollView: {
-    flex: 1,
-  },
-  explanationBox: {
-    backgroundColor: "#f9f9f9",
-    borderRadius: 12,
-    padding: 16,
-    marginVertical: 10,
-    borderWidth: 1,
-    borderColor: "#ececec",
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#111",
-    marginBottom: 8,
-  },
-  explanationText: {
-    fontSize: 14.5,
-    color: "#555",
-    lineHeight: 22,
-  },
-  signaturePreview: {
-    backgroundColor: "#f0f8ff",
-    borderRadius: 12,
-    padding: 16,
-    marginVertical: 10,
-    borderWidth: 1,
-    borderColor: "#007AFF",
-    alignItems: "center",
-  },
-  previewTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#007AFF",
-    marginBottom: 8,
-  },
-  previewContainer: {
-    backgroundColor: "#fff",
-    padding: 10,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#ddd",
-  },
-  buttonsContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    gap: 10,
-    marginTop: 6,
-  },
-  actionButton: {
-    flex: 1,
-    paddingVertical: 14,
-    borderRadius: 10,
-    alignItems: "center",
-  },
-  chatButton: {
-    backgroundColor: "#007AFF",
-  },
-  signatureButton: {
-    backgroundColor: "#FF6B6B",
-  },
-  actionText: {
-    color: "#fff",
-    fontSize: 15.5,
-    fontWeight: "600",
-  },
-  placementControls: {
-    marginTop: 12,
-    alignItems: "center",
-  },
-  placementText: {
-    fontSize: 14,
-    color: "#666",
-    textAlign: "center",
-    marginBottom: 10,
-  },
-  confirmPlacementButton: {
-    backgroundColor: "#28a745",
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 10,
-    alignItems: "center",
-    marginBottom: 8,
-    width: "100%",
-  },
-  confirmPlacementText: {
-    color: "#fff",
-    fontWeight: "600",
-    fontSize: 15,
-  },
-  cancelPlacementButton: {
-    backgroundColor: "#dc3545",
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 10,
-    alignItems: "center",
-    width: "100%",
-  },
-  cancelPlacementText: {
-    color: "#fff",
-    fontWeight: "600",
-    fontSize: 15,
-  },
-  signatureOverlay: {
-    position: "absolute",
-    backgroundColor: "transparent",
-    borderWidth: 0,
-    borderRadius: 0,
-    padding: 0,
-    zIndex: 5,
-  },
-  signatureSvg: {
-    backgroundColor: "transparent",
-  },
-  scrollContent: {
-    paddingBottom: 20,
-  },
-});
 
 export default PdfViewerScreen;

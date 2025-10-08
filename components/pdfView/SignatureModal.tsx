@@ -1,13 +1,15 @@
-import React from "react";
+import React, { useRef, useEffect } from "react";
 import { Modal, View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import SignatureCanvas from "./SignatureCanvas";
+import { captureRef } from "react-native-view-shot";
 
 interface SignatureModalProps {
   visible: boolean;
   onClose: () => void;
   onConfirm: () => void;
   onSignatureChange: (paths: { x: number; y: number }[][]) => void;
-  initialPaths?: { x: number; y: number }[][]; 
+  onSignatureBase64: (base64: string) => void;
+  initialPaths?: { x: number; y: number }[][];
 }
 
 const SignatureModal: React.FC<SignatureModalProps> = ({
@@ -15,8 +17,36 @@ const SignatureModal: React.FC<SignatureModalProps> = ({
   onClose,
   onConfirm,
   onSignatureChange,
+  onSignatureBase64,
   initialPaths = [],
 }) => {
+  const signatureRef = useRef<any>(null);
+
+  useEffect(() => {
+    if (visible && signatureRef.current) {
+      signatureRef.current.clear?.();
+    }
+  }, [visible]);
+
+  const handleConfirm = async () => {
+  if (signatureRef.current) {
+    try {
+      const base64 = await captureRef(signatureRef.current, {
+        format: "png",      
+        quality: 1,
+        result: "base64",
+        width: 80,
+        height: 50,
+      });
+      onSignatureBase64(base64);
+    } catch (error) {
+      console.log("Error capturando la firma:", error);
+    }
+  }
+  onConfirm();
+};
+
+
   return (
     <Modal
       visible={visible}
@@ -37,8 +67,9 @@ const SignatureModal: React.FC<SignatureModalProps> = ({
           <View style={styles.body}>
             <Text style={styles.text}>Firma con tu dedo en el área:</Text>
             <SignatureCanvas
+              ref={signatureRef}
               onSignatureChange={onSignatureChange}
-              initialPaths={initialPaths} 
+              onSignatureBase64={onSignatureBase64}
             />
           </View>
           <View style={styles.footer}>
@@ -50,7 +81,7 @@ const SignatureModal: React.FC<SignatureModalProps> = ({
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.button, styles.confirmButton]}
-              onPress={onConfirm}
+              onPress={handleConfirm}
             >
               <Text style={styles.confirmText}>Confirmar</Text>
             </TouchableOpacity>

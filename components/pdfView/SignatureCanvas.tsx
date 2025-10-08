@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   View,
   TouchableOpacity,
@@ -7,19 +7,22 @@ import {
   StyleSheet,
 } from "react-native";
 import Svg, { Path } from "react-native-svg";
+import { captureRef } from "react-native-view-shot";
 
 interface SignatureCanvasProps {
   onSignatureChange?: (paths: { x: number; y: number }[][]) => void;
+  onSignatureBase64?: (base64: string) => void;
 }
 
 const SignatureCanvas: React.FC<SignatureCanvasProps> = ({
   onSignatureChange,
+  onSignatureBase64,
 }) => {
   const [paths, setPaths] = useState<{ x: number; y: number }[][]>([]);
   const [currentPath, setCurrentPath] = useState<{ x: number; y: number }[]>(
     []
   );
-  const svgRef = useRef<Svg>(null);
+  const svgRef = useRef<View>(null);
 
   const panResponder = PanResponder.create({
     onStartShouldSetPanResponder: () => true,
@@ -30,14 +33,7 @@ const SignatureCanvas: React.FC<SignatureCanvasProps> = ({
     },
     onPanResponderMove: (event) => {
       const { locationX, locationY } = event.nativeEvent;
-      if (
-        locationX >= 0 &&
-        locationX <= 300 &&
-        locationY >= 0 &&
-        locationY <= 300
-      ) {
-        setCurrentPath((prev) => [...prev, { x: locationX, y: locationY }]);
-      }
+      setCurrentPath((prev) => [...prev, { x: locationX, y: locationY }]);
     },
     onPanResponderRelease: () => {
       if (currentPath.length > 1) {
@@ -63,10 +59,23 @@ const SignatureCanvas: React.FC<SignatureCanvasProps> = ({
     return path;
   };
 
+  const exportBase64 = async () => {
+    if (!svgRef.current) return;
+    const uri = await captureRef(svgRef.current, {
+      format: "png",
+      result: "base64",
+    });
+    onSignatureBase64?.(uri);
+  };
+
+  useEffect(() => {
+    if (paths.length > 0) exportBase64();
+  }, [paths]);
+
   return (
     <View style={styles.canvasContainer}>
-      <View style={styles.canvas} {...panResponder.panHandlers}>
-        <Svg width="100%" height="100%" ref={svgRef}>
+      <View style={styles.canvas} {...panResponder.panHandlers} ref={svgRef}>
+        <Svg width="100%" height="100%">
           {paths.map((p, i) => (
             <Path
               key={i}
