@@ -10,6 +10,7 @@ import AddPaymentMethodScreen from "../screens/AddPaymentMethodScreen";
 import BuySubscriptionScreen from "../screens/BuySubscriptionScreen";
 import PaymentToBuyScreen from "../screens/PaymentToBuyScreen";
 import PdfViewerScreen from "../screens/pdf/PdfViewerScreen";
+import ContractSummaryScreen from "../screens/ContractSummaryScreen"; // Importa la pantalla ContractSummaryScreen
 
 type RootStackParamList = {
   Welcome: undefined;
@@ -22,6 +23,7 @@ type RootStackParamList = {
   AddPaymentMethod: undefined;
   PaymentToBuy: undefined;
   PdfViewer: undefined;
+  ContractSummary: undefined; 
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -45,6 +47,7 @@ export default function RootNavigator() {
         component={AddPaymentMethodScreen}
       />
       <Stack.Screen name="PdfViewer" component={PdfViewerScreen} />
+      <Stack.Screen name="ContractSummary" component={ContractSummaryScreen} /> 
     </Stack.Navigator>
   );
 }

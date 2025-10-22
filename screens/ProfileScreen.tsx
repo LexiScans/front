@@ -8,6 +8,7 @@ import {
   StyleSheet,
   ActivityIndicator,
   Alert,
+  Image,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -37,6 +38,7 @@ type UserData = {
     ncontracts: number;
     nquestions: number;
   };
+  profileImage?: string; // URL of the user's profile picture
 };
 
 const ProfileScreen = () => {
@@ -70,6 +72,7 @@ const ProfileScreen = () => {
   const handleBuyPlan = () => {
     navigation.navigate("BuySubscription");
   };
+  
   const handleCancelSubscription = async () => {
     try {
       const response = await fetch(
@@ -111,10 +114,18 @@ const ProfileScreen = () => {
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 200 }}>
         <View style={styles.header}>
-          <View>
-            <Text style={styles.title}>Mi Perfil</Text>
+          <View style={styles.profileInfo}>
+            {user?.profileImage ? (
+              <Image
+                source={{ uri: user.profileImage }}
+                style={styles.profileImage}
+              />
+            ) : (
+              <Ionicons name="person-circle-outline" size={60} color="#111827" />
+            )}
+            <Text style={styles.profileName}>{user?.name}</Text>
+            <Text style={styles.profileEmail}>{user?.email}</Text>
           </View>
-          <Ionicons name="person-circle-outline" size={60} color="#111827" />
         </View>
 
         <View style={styles.card}>
@@ -126,6 +137,7 @@ const ProfileScreen = () => {
           <Text style={styles.label}>Correo</Text>
           <Text style={styles.value}>{user?.email}</Text>
         </View>
+        
         <View style={styles.subscriptionCard}>
           <Ionicons name="star-outline" size={28} color="white" />
           <Text style={styles.planTitle}>Tu plan:</Text>
@@ -184,15 +196,26 @@ const styles = StyleSheet.create({
     backgroundColor: "#F9FAFB",
   },
   header: {
-    flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
     marginBottom: 20,
   },
-  title: {
-    fontSize: 26,
-    fontWeight: "700",
+  profileInfo: {
+    alignItems: "center",
+  },
+  profileImage: {
+    width: 90,
+    height: 90,
+    borderRadius: 45,
+    marginBottom: 10,
+  },
+  profileName: {
+    fontSize: 20,
+    fontWeight: "600",
     color: "#111827",
+  },
+  profileEmail: {
+    fontSize: 14,
+    color: "#6B7280",
   },
   card: {
     backgroundColor: "white",
