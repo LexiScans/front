@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   Alert,
   Image,
+  Switch,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -25,6 +26,7 @@ type RootStackParamList = {
   Profile: undefined;
   BuySubscription: undefined;
   PaymentMethod: undefined;
+  Configuracion: undefined; 
 };
 
 type UserData = {
@@ -38,7 +40,7 @@ type UserData = {
     ncontracts: number;
     nquestions: number;
   };
-  profileImage?: string; // URL of the user's profile picture
+  profileImage?: string; 
 };
 
 const ProfileScreen = () => {
@@ -47,6 +49,7 @@ const ProfileScreen = () => {
 
   const [user, setUser] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
 
   const userId = "45224151-7b09-45ff-835b-413062c2e815";
 
@@ -71,6 +74,10 @@ const ProfileScreen = () => {
 
   const handleBuyPlan = () => {
     navigation.navigate("BuySubscription");
+  };
+
+  const handleConfiguracion = () => {
+    navigation.navigate("Configuracion");
   };
   
   const handleCancelSubscription = async () => {
@@ -112,76 +119,140 @@ const ProfileScreen = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 200 }}>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
-          <View style={styles.profileInfo}>
+          <Text style={styles.headerTitle}>Mi Cuenta</Text>
+          <TouchableOpacity 
+            style={styles.configButton}
+            onPress={handleConfiguracion}
+          >
+            <Ionicons name="settings-outline" size={24} color="#6B7280" />
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.userCard}>
+          <View style={styles.userInfo}>
             {user?.profileImage ? (
               <Image
                 source={{ uri: user.profileImage }}
                 style={styles.profileImage}
               />
             ) : (
-              <Ionicons name="person-circle-outline" size={60} color="#111827" />
+              <View style={styles.profileIcon}>
+                <Ionicons name="person" size={40} color="#6fa7c7ff" />
+              </View>
             )}
-            <Text style={styles.profileName}>{user?.name}</Text>
-            <Text style={styles.profileEmail}>{user?.email}</Text>
+            <View style={styles.userDetails}>
+              <Text style={styles.userName}>{user?.name}</Text>
+              <Text style={styles.userEmail}>{user?.email}</Text>
+            </View>
           </View>
         </View>
 
-        <View style={styles.card}>
-          <Text style={styles.label}>Nombre</Text>
-          <Text style={styles.value}>{user?.name}</Text>
-        </View>
-
-        <View style={styles.card}>
-          <Text style={styles.label}>Correo</Text>
-          <Text style={styles.value}>{user?.email}</Text>
-        </View>
-        
-        <View style={styles.subscriptionCard}>
-          <Ionicons name="star-outline" size={28} color="white" />
-          <Text style={styles.planTitle}>Tu plan:</Text>
-          <Text style={styles.planTitle}>
-            {user?.suscription?.type || "Gratis"}
-          </Text>
-          <Text style={styles.planPeriod}>
-            Válido hasta: {user?.suscription?.endDate || "N/A"}
-          </Text>
-
-          {!user?.suscription && <BotonEscoger onPress={handleBuyPlan} />}
-          {user?.suscription && <BotonCancelar onPress={confirmCancel} />}
-          {user?.suscription && <BotonCancelar onPress={confirmCancel} />}
-
-          {user?.suscription?.type && (
-            <BotonMejorarPlan
-              currentPlan={user.suscription.type}
-              onPress={(targetPlan) => {
-                navigation.navigate("BuySubscription");
-              }}
-            />
-          )}
-        </View>
-
-        <View style={styles.paymentSection}>
-          <Text style={styles.sectionTitle}>Métodos de pago</Text>
-          <Text style={styles.sectionSubtitle}>
-            Gestiona tus tarjetas y selecciona la preferida para tu suscripción
-          </Text>
-          <TouchableOpacity style={styles.paymentBtn} onPress={handlePayment}>
-            <Ionicons name="card-outline" size={20} color="white" />
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Métodos de Pago</Text>
+          <TouchableOpacity style={styles.paymentCard} onPress={handlePayment}>
+            <Ionicons name="card-outline" size={24} color="#6fa7c7ff" />
             <Text style={styles.paymentText}>Gestionar métodos de pago</Text>
+            <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Tu Plan Actual</Text>
+          <View style={styles.planCard}>
+            <View style={styles.planHeader}>
+              <Text style={styles.planName}>
+                {user?.suscription?.type || "Plan Gratis"}
+              </Text>
+              <TouchableOpacity style={styles.manageButton}>
+                <Text style={styles.manageButtonText}>Gestionar Plan</Text>
+              </TouchableOpacity>
+            </View>
+            
+            {user?.suscription ? (
+              <>
+                <Text style={styles.planPrice}>{user.suscription.price}</Text>
+                <Text style={styles.planDetails}>
+                  Válido hasta: {user.suscription.endDate}
+                </Text>
+                <Text style={styles.planDetails}>
+                  Contratos restantes: {user.suscription.ncontracts}
+                </Text>
+                <Text style={styles.planDetails}>
+                  Preguntas restantes: {user.suscription.nquestions}
+                </Text>
+                
+                <View style={styles.planActions}>
+                  <BotonCancelar onPress={confirmCancel} />
+                  <BotonMejorarPlan
+                    currentPlan={user.suscription.type}
+                    onPress={(targetPlan) => {
+                      navigation.navigate("BuySubscription");
+                    }}
+                  />
+                </View>
+              </>
+            ) : (
+              <>
+                <Text style={styles.planPrice}>Gratis</Text>
+                <Text style={styles.planDetails}>
+                  Funcionalidades básicas incluidas
+                </Text>
+                <BotonEscoger onPress={handleBuyPlan} />
+              </>
+            )}
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Configuración</Text>
+          
+          <TouchableOpacity style={styles.menuItem}>
+            <View style={styles.menuItemLeft}>
+              <Ionicons name="person-outline" size={22} color="#6B7280" />
+              <Text style={styles.menuItemText}>Editor Perfil</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color="#9CA3AF" />
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.menuItem}>
+            <View style={styles.menuItemLeft}>
+              <Ionicons name="shield-checkmark-outline" size={22} color="#6B7280" />
+              <Text style={styles.menuItemText}>Seguridad</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color="#9CA3AF" />
+          </TouchableOpacity>
+
+          <View style={styles.menuItem}>
+            <View style={styles.menuItemLeft}>
+              <Ionicons name="notifications-outline" size={22} color="#6B7280" />
+              <Text style={styles.menuItemText}>Notificaciones</Text>
+            </View>
+            <Switch
+              value={notificationsEnabled}
+              onValueChange={setNotificationsEnabled}
+              trackColor={{ false: "#D1D5DB", true: "#6fa7c7ff" }}
+              thumbColor={notificationsEnabled ? "#ffffff" : "#f4f3f4"}
+            />
+          </View>
+
+          <TouchableOpacity style={styles.menuItem}>
+            <View style={styles.menuItemLeft}>
+              <Ionicons name="help-circle-outline" size={22} color="#6B7280" />
+              <Text style={styles.menuItemText}>Ayuda y Soporte</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color="#9CA3AF" />
+          </TouchableOpacity>
+
+          <TouchableOpacity style={[styles.menuItem, styles.logoutItem]} onPress={handleLogout}>
+            <View style={styles.menuItemLeft}>
+              <Ionicons name="log-out-outline" size={22} color="#EF4444" />
+              <Text style={[styles.menuItemText, styles.logoutText]}>Cerrar Sesión</Text>
+            </View>
           </TouchableOpacity>
         </View>
       </ScrollView>
-
-      <View style={styles.footer}>
-        <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
-          <View style={styles.logoutContent}>
-            <Ionicons name="log-out-outline" size={20} color="white" />
-            <Text style={styles.logoutText}>Cerrar sesión</Text>
-          </View>
-        </TouchableOpacity>
-      </View>
 
       <BottomNav onPressCentral={() => {}} />
     </SafeAreaView>
@@ -195,125 +266,173 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#F9FAFB",
   },
-  header: {
-    alignItems: "center",
-    marginBottom: 20,
+  scrollContent: {
+    padding: 16,
+    paddingBottom: 100,
   },
-  profileInfo: {
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 24,
+  },
+  headerTitle: {
+    fontSize: 28,
+    fontWeight: "700",
+    color: "#111827",
+    flex: 1,
+    textAlign: "center",
+  },
+  configButton: {
+    padding: 8,
+    position: "absolute",
+    right: 0,
+  },
+  userCard: {
+    backgroundColor: "white",
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 20,
+    shadowColor: "#000",
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  userInfo: {
+    flexDirection: "row",
     alignItems: "center",
   },
   profileImage: {
-    width: 90,
-    height: 90,
-    borderRadius: 45,
-    marginBottom: 10,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
   },
-  profileName: {
-    fontSize: 20,
+  profileIcon: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: "#F3F4F6",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  userDetails: {
+    marginLeft: 16,
+    flex: 1,
+  },
+  userName: {
+    fontSize: 18,
     fontWeight: "600",
     color: "#111827",
-  },
-  profileEmail: {
-    fontSize: 14,
-    color: "#6B7280",
-  },
-  card: {
-    backgroundColor: "white",
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 12,
-    shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  label: {
-    fontSize: 14,
-    color: "#6B7280",
     marginBottom: 4,
   },
-  value: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#111827",
-  },
-  subscriptionCard: {
-    backgroundColor: "#6fa7c7ff",
-    borderRadius: 16,
-    padding: 20,
-    marginVertical: 20,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  planTitle: {
-    fontSize: 22,
-    fontWeight: "700",
-    color: "white",
-    marginTop: 8,
-  },
-  planPeriod: {
+  userEmail: {
     fontSize: 14,
-    color: "white",
-    marginVertical: 4,
+    color: "#6B7280",
   },
-  paymentSection: {
-    backgroundColor: "white",
-    padding: 20,
-    borderRadius: 16,
-    marginBottom: 20,
-    shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
-    elevation: 3,
+  section: {
+    marginBottom: 24,
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: "700",
+    fontWeight: "600",
     color: "#111827",
-    marginBottom: 4,
+    marginBottom: 12,
+    paddingLeft: 4,
   },
-  sectionSubtitle: {
-    fontSize: 14,
-    color: "#6B7280",
-    marginBottom: 16,
-  },
-  paymentBtn: {
-    backgroundColor: "#6fa7c7ff",
+  paymentCard: {
+    backgroundColor: "white",
+    borderRadius: 12,
+    padding: 16,
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 14,
-    borderRadius: 10,
+    shadowColor: "#000",
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 2,
   },
   paymentText: {
-    color: "white",
     fontSize: 16,
-    fontWeight: "600",
-    marginLeft: 8,
+    color: "#111827",
+    marginLeft: 12,
+    flex: 1,
   },
-  footer: {
-    position: "absolute",
-    bottom: 120,
-    left: 20,
-    right: 20,
+  planCard: {
+    backgroundColor: "white",
+    borderRadius: 16,
+    padding: 20,
+    shadowColor: "#000",
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 3,
   },
-  logoutBtn: {
-    backgroundColor: "#EF4444",
-    paddingVertical: 14,
-    borderRadius: 12,
+  planHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
     alignItems: "center",
-    justifyContent: "center",
+    marginBottom: 12,
   },
-  logoutContent: {
+  planName: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#111827",
+  },
+  manageButton: {
+    backgroundColor: "#6fa7c7ff",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  manageButtonText: {
+    color: "white",
+    fontSize: 12,
+    fontWeight: "600",
+  },
+  planPrice: {
+    fontSize: 24,
+    fontWeight: "700",
+    color: "#6fa7c7ff",
+    marginBottom: 8,
+  },
+  planDetails: {
+    fontSize: 14,
+    color: "#6B7280",
+    marginBottom: 4,
+  },
+  planActions: {
+    marginTop: 16,
+    gap: 12,
+  },
+  menuItem: {
+    backgroundColor: "white",
+    borderRadius: 12,
+    padding: 16,
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 8,
+    shadowColor: "#000",
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 1,
+  },
+  menuItemLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+  },
+  menuItemText: {
+    fontSize: 16,
+    color: "#111827",
+    marginLeft: 12,
+    flex: 1,
+  },
+  logoutItem: {
+    marginTop: 8,
+    borderLeftWidth: 3,
+    borderLeftColor: "#EF4444",
   },
   logoutText: {
-    color: "white",
-    fontSize: 16,
+    color: "#EF4444",
     fontWeight: "600",
-    marginLeft: 8,
   },
 });

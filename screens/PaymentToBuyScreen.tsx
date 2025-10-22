@@ -28,9 +28,30 @@ const PaymentToBuyScreen = () => {
   >([]);
   const [selectedCard, setSelectedCard] = useState<string | null>(null);
 
-
   const route = useRoute();
   const { plan } = route.params as { plan: string };
+  const navigation = useNavigation();
+
+  // Precios actualizados según los nuevos planes
+  const planPrices = {
+    "BASIC": "$4.99",
+    "MEDIUM": "$14.99", 
+    "FULL": "$29.99"
+  };
+
+  const planDisplayNames = {
+    "BASIC": "Básico",
+    "MEDIUM": "Medium",
+    "FULL": "Full"
+  };
+
+  const getPlanPrice = (planType: string) => {
+    return planPrices[plan] || "$4.99";
+  };
+
+  const getPlanDisplayName = (planType: string) => {
+    return planDisplayNames[plan] || "Básico";
+  };
 
   const fetchCards = async () => {
     try {
@@ -76,7 +97,12 @@ const PaymentToBuyScreen = () => {
       }
 
       const data = await response.json();
-      Alert.alert("Éxito", `Suscripción creada: ${JSON.stringify(data)}`);
+      Alert.alert("Éxito", `Suscripción ${getPlanDisplayName(plan)} activada correctamente`, [
+        {
+          text: "OK",
+          onPress: () => navigation.goBack()
+        }
+      ]);
     } catch (err: any) {
       Alert.alert("Error", err.message);
     }
@@ -84,36 +110,58 @@ const PaymentToBuyScreen = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 200 }}>
-        <Text style={styles.title}>Gestiona tus métodos de pago</Text>
-        <Text style={styles.planTitle}>Plan seleccionado: {plan}</Text>
-        <Text style={styles.subtitle}>
-          Escoge la tarjeta que será usada para tu suscripción mensual
-        </Text>
-
-        {cards.map((card) => (
-          <View key={card.id} style={styles.cardRow}>
-            <RadioButton
-              value={card.id}
-              status={selectedCard === card.id ? "checked" : "unchecked"}
-              onPress={() => setSelectedCard(card.id)}
-              color="#2563eb"
-            />
-            <View
-              style={[styles.cardWrapper, card.isDefault && styles.defaultCard]}
-            >
-              {card.isDefault && (
-                <View style={styles.ribbon}>
-                  <Text style={styles.ribbonText}>Predeterminada</Text>
-                </View>
-              )}
-              <PaymentCard number={card.last4} color={card.color} />
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Pasarela de Pagos</Text>
+          <Text style={styles.subtitle}>Selecciona tu plan</Text>
+          
+          <View style={styles.planOverview}>
+            <View style={styles.planItem}>
+              <Text style={styles.planName}>{getPlanDisplayName(plan)}</Text>
+              <Text style={styles.planPrice}>{getPlanPrice(plan)}</Text>
+              <Text style={styles.planPeriod}>/mes</Text>
             </View>
           </View>
-        ))}
+        </View>
 
-        <TouchableOpacity style={styles.selectBtn} onPress={crearSuscripcion}>
-          <Text style={styles.selectText}>Pagar</Text>
+        <View style={styles.divider} />
+
+        <View style={styles.paymentSection}>
+          <Text style={styles.sectionTitle}>Método de Pago</Text>
+          <Text style={styles.sectionSubtitle}>
+            Escoge la tarjeta que será usada para tu suscripción mensual
+          </Text>
+
+          {cards.map((card) => (
+            <View key={card.id} style={styles.cardRow}>
+              <RadioButton
+                value={card.id}
+                status={selectedCard === card.id ? "checked" : "unchecked"}
+                onPress={() => setSelectedCard(card.id)}
+                color="#2563eb"
+              />
+              <View
+                style={[styles.cardWrapper, card.isDefault && styles.defaultCard]}
+              >
+                {card.isDefault && (
+                  <View style={styles.ribbon}>
+                    <Text style={styles.ribbonText}>Predeterminada</Text>
+                  </View>
+                )}
+                <PaymentCard number={card.last4} color={card.color} />
+              </View>
+            </View>
+          ))}
+
+          <TouchableOpacity style={styles.addCardButton}>
+            <Text style={styles.addCardText}>+ Agregar nueva tarjeta</Text>
+          </TouchableOpacity>
+        </View>
+
+        <TouchableOpacity style={styles.payButton} onPress={crearSuscripcion}>
+          <Text style={styles.payButtonText}>
+            Confirmar Pago - {getPlanPrice(plan)}/mes
+          </Text>
         </TouchableOpacity>
       </ScrollView>
 
@@ -128,28 +176,85 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#F9FAFB",
-    marginTop: 60,
   },
-  title: {
+  scrollContent: {
+    padding: 20,
+    paddingBottom: 100,
+  },
+  header: {
+    marginBottom: 20,
+  },
+  headerTitle: {
     fontSize: 24,
-    fontWeight: "700",
+    fontWeight: "bold",
     color: "#111827",
-    marginBottom: 6,
+    textAlign: "center",
+    marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
     color: "#6B7280",
+    textAlign: "center",
+    marginBottom: 24,
+  },
+  planOverview: {
+    backgroundColor: "white",
+    borderRadius: 12,
+    padding: 20,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  planItem: {
+    alignItems: "center",
+  },
+  planName: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#111827",
+    marginBottom: 8,
+  },
+  planPrice: {
+    fontSize: 28,
+    fontWeight: "bold",
+    color: "#2563eb",
+    marginBottom: 4,
+  },
+  planPeriod: {
+    fontSize: 14,
+    color: "#6B7280",
+  },
+  divider: {
+    height: 1,
+    backgroundColor: "#E5E7EB",
+    marginVertical: 24,
+  },
+  paymentSection: {
+    marginBottom: 30,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#111827",
+    marginBottom: 8,
+  },
+  sectionSubtitle: {
+    fontSize: 14,
+    color: "#6B7280",
     marginBottom: 20,
+    lineHeight: 20,
   },
   cardRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 20,
+    marginBottom: 16,
   },
   cardWrapper: {
     position: "relative",
     borderRadius: 8,
     overflow: "hidden",
+    flex: 1,
   },
   defaultCard: {
     borderWidth: 2,
@@ -163,52 +268,36 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     paddingHorizontal: 8,
     borderBottomRightRadius: 6,
+    zIndex: 1,
   },
   ribbonText: {
     color: "#fff",
     fontSize: 12,
     fontWeight: "700",
   },
-  planTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: "#111827",
-    marginBottom: 16,
-  },
-  selectBtn: {
-    backgroundColor: "#2563eb",
-    paddingVertical: 14,
-    borderRadius: 10,
-    alignItems: "center",
-    marginTop: 10,
-  },
-  selectText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  addBtn: {
+  addCardButton: {
     borderColor: "#2563eb",
-    borderWidth: 1.5,
-    paddingVertical: 14,
-    borderRadius: 10,
+    borderWidth: 1,
+    paddingVertical: 12,
+    borderRadius: 8,
     alignItems: "center",
-    marginTop: 12,
+    marginTop: 8,
   },
-  addText: {
+  addCardText: {
     color: "#2563eb",
     fontSize: 16,
     fontWeight: "600",
   },
-  deleteBtn: {
-    marginLeft: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    backgroundColor: "#dd3737",
-    borderRadius: 6,
+  payButton: {
+    backgroundColor: "#2563eb",
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: "center",
+    marginTop: 20,
   },
-  deleteText: {
-    color: "#fff",
-    fontWeight: "700",
+  payButtonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "600",
   },
 });
