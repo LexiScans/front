@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { Ionicons } from "@expo/vector-icons";
 
 type RootStackParamList = {
   Login: undefined;
@@ -25,8 +26,11 @@ const BuySubscriptionScreen = () => {
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   const handleSelectPlan = (plan: string) => {
-    console.log("Seleccionaste:", plan);
     navigation.navigate("PaymentToBuy", { plan });
+  };
+
+  const handleGoBack = () => {
+    navigation.goBack();
   };
 
   const plans = [
@@ -73,7 +77,13 @@ const BuySubscriptionScreen = () => {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        <Text style={styles.headerTitle}>Planes de Suscripción</Text>
+        <View style={styles.header}>
+          <TouchableOpacity style={styles.backButton} onPress={handleGoBack}>
+            <Ionicons name="arrow-back" size={24} color="#0b2e42ff" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Planes de Suscripción</Text>
+          <View style={styles.placeholder} />
+        </View>
 
         {plans.map((plan, index) => (
           <View key={index} style={styles.planCard}>
@@ -128,16 +138,28 @@ const styles = StyleSheet.create({
     backgroundColor: "#F9FAFB",
   },
   scrollContent: {
-    paddingTop: 80, 
+    paddingTop: 60,
     paddingHorizontal: 20,
     paddingBottom: 40,
   },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#111827",
-    textAlign: "center",
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     marginBottom: 30,
+  },
+  backButton: {
+    padding: 8,
+    backgroundColor: "#f8fafc",
+    borderRadius: 8,
+  },
+  headerTitle: {
+    fontSize: 22,
+    fontWeight: "700",
+    color: "#0b2e42ff",
+  },
+  placeholder: {
+    width: 40,
   },
   planCard: {
     backgroundColor: "white",
@@ -182,7 +204,7 @@ const styles = StyleSheet.create({
     color: "#111827",
   },
   selectButton: {
-    backgroundColor: "#6fa7c7ff",
+    backgroundColor: "#0b2e42ff",
     paddingVertical: 12,
     paddingHorizontal: 24,
     borderRadius: 8,

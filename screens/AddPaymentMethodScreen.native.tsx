@@ -78,7 +78,10 @@ const AddPaymentMethodScreen = ({ navigation }: any) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scroll}>
+      <ScrollView
+        contentContainerStyle={styles.scroll}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.header}>
           <TouchableOpacity
             style={styles.backButton}
@@ -131,6 +134,8 @@ const AddPaymentMethodScreen = ({ navigation }: any) => {
             Tus datos están protegidos con encriptación de grado bancario
           </Text>
         </View>
+
+        <View style={styles.bottomSpacer} />
       </ScrollView>
     </SafeAreaView>
   );
@@ -146,14 +151,14 @@ const styles = StyleSheet.create({
   scroll: {
     flexGrow: 1,
     padding: 20,
-    paddingBottom: 40,
+    paddingBottom: 120, 
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     marginBottom: 30,
-    marginTop: 10,
+    marginTop: 50, 
   },
   backButton: {
     padding: 8,
@@ -258,5 +263,8 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     flex: 1,
     textAlign: "center",
+  },
+  bottomSpacer: {
+    height: 60, 
   },
 });

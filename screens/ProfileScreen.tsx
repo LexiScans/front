@@ -28,6 +28,7 @@ type RootStackParamList = {
   PaymentMethod: undefined;
   Configuracion: undefined;
   TermsAndConditions: undefined;
+  Support: undefined;
 };
 
 type UserData = {
@@ -210,7 +211,11 @@ const ProfileScreen = () => {
             />
           </View>
 
-          <TouchableOpacity style={styles.menuItem}>
+          {/* Botón actualizado de Ayuda y Soporte */}
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => navigation.navigate("Support")}
+          >
             <View style={styles.menuItemLeft}>
               <Ionicons name="help-circle-outline" size={22} color="#6B7280" />
               <Text style={styles.menuItemText}>Ayuda y Soporte</Text>

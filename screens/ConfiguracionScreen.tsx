@@ -21,6 +21,14 @@ const ConfiguracionScreen = () => {
     navigation.navigate("TermsAndConditions" as never);
   };
 
+  const handleEditProfile = () => {
+    navigation.navigate("EditProfile" as never);
+  };
+
+  const handlePrivacyPolicy = () => {
+    navigation.navigate("PrivacyPolicy" as never);
+  };
+
   const handleGoBack = () => {
     navigation.goBack();
   };
@@ -39,10 +47,10 @@ const ConfiguracionScreen = () => {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Perfil</Text>
 
-          <TouchableOpacity style={styles.menuItem}>
+          <TouchableOpacity style={styles.menuItem} onPress={handleEditProfile}>
             <View style={styles.menuItemLeft}>
               <Ionicons name="person-outline" size={22} color="#6B7280" />
-              <Text style={styles.menuItemText}>Editor Perfil</Text>
+              <Text style={styles.menuItemText}>Editar Perfil</Text>
             </View>
             <Ionicons name="chevron-forward" size={18} color="#9CA3AF" />
           </TouchableOpacity>
@@ -129,7 +137,10 @@ const ConfiguracionScreen = () => {
             <Ionicons name="chevron-forward" size={18} color="#9CA3AF" />
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.menuItem}>
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={handlePrivacyPolicy}
+          >
             <View style={styles.menuItemLeft}>
               <Ionicons name="lock-closed-outline" size={22} color="#6B7280" />
               <Text style={styles.menuItemText}>Política de privacidad</Text>
