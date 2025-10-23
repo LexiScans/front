@@ -1,11 +1,11 @@
 import React from "react";
-import { 
-  SafeAreaView, 
-  ScrollView, 
-  StyleSheet, 
-  Text, 
+import {
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
   View,
-  TouchableOpacity 
+  TouchableOpacity,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -32,7 +32,8 @@ const BuySubscriptionScreen = () => {
   const plans = [
     {
       title: "Básico",
-      description: "Plan económico que permite procesar más contratos, hacer preguntas básicas y descargar resultados.",
+      description:
+        "Plan económico que permite procesar más contratos, hacer preguntas básicas y descargar resultados.",
       price: "$4.99/mes",
       contracts: "10 contratos / mes",
       questions: "2 preguntas incluidas",
@@ -40,11 +41,12 @@ const BuySubscriptionScreen = () => {
       ads: "Publicidad: No",
       buttonText: "Seleccionar Plan",
       onPress: () => handleSelectPlan("BASIC"),
-      isCurrent: false
+      isCurrent: false,
     },
     {
-      title: "Medium", 
-      description: "Plan completo para profesionales, con alto volumen de contratos y mayor capacidad de interacción.",
+      title: "Medium",
+      description:
+        "Plan completo para profesionales, con alto volumen de contratos y mayor capacidad de interacción.",
       price: "$14.99/mes",
       contracts: "70 contratos / mes",
       questions: "10 preguntas incluidas",
@@ -52,7 +54,7 @@ const BuySubscriptionScreen = () => {
       ads: "Publicidad: No",
       buttonText: "Seleccionar Plan",
       onPress: () => handleSelectPlan("MEDIUM"),
-      isCurrent: false
+      isCurrent: false,
     },
     {
       title: "Full",
@@ -64,50 +66,52 @@ const BuySubscriptionScreen = () => {
       ads: "Publicidad: No",
       buttonText: "Seleccionar Plan",
       onPress: () => handleSelectPlan("FULL"),
-      isCurrent: false
-    }
+      isCurrent: false,
+    },
   ];
 
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <Text style={styles.headerTitle}>Planes de Suscripción</Text>
-        
+
         {plans.map((plan, index) => (
           <View key={index} style={styles.planCard}>
             <View style={styles.planHeader}>
               <Text style={styles.planTitle}>{plan.title}</Text>
             </View>
-            
+
             <Text style={styles.planDescription}>{plan.description}</Text>
-            
+
             <View style={styles.planDetails}>
               <Text style={styles.planDetail}>{plan.contracts}</Text>
               <Text style={styles.planDetail}>{plan.questions}</Text>
               <Text style={styles.planDetail}>{plan.pdf}</Text>
               <Text style={styles.planDetail}>{plan.ads}</Text>
             </View>
-            
+
             <View style={styles.priceContainer}>
               <Text style={styles.planPrice}>{plan.price}</Text>
             </View>
-            
-            <TouchableOpacity 
+
+            <TouchableOpacity
               style={[
                 styles.selectButton,
-                plan.isCurrent && styles.currentPlanButton
+                plan.isCurrent && styles.currentPlanButton,
               ]}
               onPress={plan.onPress}
               disabled={plan.isCurrent}
             >
-              <Text style={[
-                styles.buttonText,
-                plan.isCurrent && styles.currentButtonText
-              ]}>
+              <Text
+                style={[
+                  styles.buttonText,
+                  plan.isCurrent && styles.currentButtonText,
+                ]}
+              >
                 {plan.buttonText}
               </Text>
             </TouchableOpacity>
-            
+
             {index < plans.length - 1 && <View style={styles.divider} />}
           </View>
         ))}
@@ -124,7 +128,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#F9FAFB",
   },
   scrollContent: {
-    padding: 20,
+    paddingTop: 80, 
+    paddingHorizontal: 20,
     paddingBottom: 40,
   },
   headerTitle: {

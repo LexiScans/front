@@ -11,7 +11,6 @@ import {
 import { WebView } from "react-native-webview";
 import { Svg, Path } from "react-native-svg";
 import { useNavigation } from "@react-navigation/native";
-import ChatModal from "../../components/pdfView/ChatModal";
 import SignatureModal from "../../components/pdfView/SignatureModal";
 import ConfirmSignatureModal from "../../components/pdfView/ConfirmSignatureModal";
 import SuccessModal from "../../components/pdfView/SuccessModal";
@@ -21,16 +20,11 @@ import { styles } from "./styles";
 const PdfViewerScreen: React.FC = () => {
   const navigation = useNavigation();
   const [loading, setLoading] = useState(true);
-  const [chatVisible, setChatVisible] = useState(false);
   const [signatureModalVisible, setSignatureModalVisible] = useState(false);
   const [confirmModalVisible, setConfirmModalVisible] = useState(false);
   const [successModalVisible, setSuccessModalVisible] = useState(false);
   const [warningModalVisible, setWarningModalVisible] = useState(false);
   const [isSigning, setIsSigning] = useState(false);
-  const [messages, setMessages] = useState<{ text: string; isUser: boolean }[]>(
-    []
-  );
-  const [inputText, setInputText] = useState("");
   const [signaturePaths, setSignaturePaths] = useState<
     { x: number; y: number }[][]
   >([]);
@@ -42,35 +36,11 @@ const PdfViewerScreen: React.FC = () => {
   const webViewRef = useRef<WebView>(null);
 
   const [pdfUrl, setPdfUrl] = useState(
-    "https://lexiscan.blob.core.windows.net/pdfs/contrato%20para%20lexisacn.pdf?sv=2024-08-04&se=2025-10-08T20%3A56%3A24Z&sr=b&sp=r&sig=HtO4tALpxH2t2QKkFjuGaYafREiqkzAGskDhi737Nxw%3D&rscd=inline&rsct=application%2Fpdf"
+    "https://cimav.edu.mx/pnt/LGPDPPSO/2.2.2.pdf"
   );
   const viewerUrl = `https://docs.google.com/gview?embedded=true&url=${encodeURIComponent(
     pdfUrl
   )}`;
-
-  const sendMessage = useCallback(() => {
-    if (inputText.trim() === "") return;
-    const userMessage = { text: inputText, isUser: true };
-    setMessages((prev) => [...prev, userMessage]);
-    setInputText("");
-    setTimeout(() => {
-      const botResponse = getBotResponse(inputText);
-      setMessages((prev) => [...prev, { text: botResponse, isUser: false }]);
-    }, 1000);
-  }, [inputText]);
-
-  const getBotResponse = (msg: string) => {
-    const m = msg.toLowerCase();
-    if (m.includes("hola") || m.includes("buenos"))
-      return "¡Hola! Soy tu asistente del contrato. ¿En qué puedo ayudarte con el documento?";
-    if (m.includes("pago") || m.includes("precio"))
-      return "Los términos de pago están en la sección 3 del contrato.";
-    if (m.includes("confidencialidad"))
-      return "La cláusula de confidencialidad protege la información sensible.";
-    if (m.includes("terminación") || m.includes("finalizar"))
-      return "Las condiciones de terminación están en la sección 6 del documento.";
-    return "Entiendo tu pregunta. ¿Podrías ser más específico?";
-  };
 
   const handleSignatureConfirm = useCallback(() => {
     if (signaturePaths.length === 0) {
@@ -166,23 +136,21 @@ const PdfViewerScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
+      {/* Visor del contrato PDF */}
       <View style={styles.webviewContainer}>
         {loading && (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#007AFF" />
+            <ActivityIndicator size="large" color="#1E88E5" />
             <Text style={styles.loadingText}>Cargando contrato...</Text>
           </View>
         )}
+
         <ScrollView
           ref={scrollViewRef}
           horizontal
           pagingEnabled
           style={styles.scrollView}
-          showsHorizontalScrollIndicator
-          showsVerticalScrollIndicator={false}
-          directionalLockEnabled
-          decelerationRate="fast"
-          snapToAlignment="center"
+          showsHorizontalScrollIndicator={false}
         >
           <WebView
             ref={webViewRef}
@@ -191,9 +159,6 @@ const PdfViewerScreen: React.FC = () => {
             onLoadEnd={handleLoadEnd}
             javaScriptEnabled
             domStorageEnabled
-            startInLoadingState
-            cacheEnabled
-            cacheMode="LOAD_CACHE_ELSE_NETWORK"
           />
         </ScrollView>
 
@@ -212,26 +177,16 @@ const PdfViewerScreen: React.FC = () => {
         )}
       </View>
 
+      {/* Sección inferior: solo firma */}
       <View style={styles.bottomSection}>
         <ScrollView
           ref={scrollViewRef}
           style={styles.bottomScrollView}
           contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator
+          showsVerticalScrollIndicator={false}
           nestedScrollEnabled
-          overScrollMode="always"
-          removeClippedSubviews={Platform.OS === "android"}
         >
-          <View style={styles.explanationBox}>
-            <Text style={styles.title}>📋 Explicación del Contrato</Text>
-            <Text style={styles.explanationText}>
-              El presente documento constituye un acuerdo de prestación de
-              servicios celebrado entre las partes, detallando obligaciones,
-              pagos y cláusulas de confidencialidad. {"\n\n"}Presiona el botón
-              de ayuda si necesitas entender una sección específica.
-            </Text>
-          </View>
-
+          {/* Vista previa de la firma */}
           {signaturePaths.length > 0 && !placingSignature && (
             <View style={styles.signaturePreview}>
               <Text style={styles.previewTitle}>Vista previa de tu firma:</Text>
@@ -243,30 +198,45 @@ const PdfViewerScreen: React.FC = () => {
             </View>
           )}
 
-          <View style={styles.buttonsContainer}>
+          {/* Botón principal de firma - CENTRADO AL 35% */}
+          <View
+            style={[
+              styles.buttonsContainer,
+              { width: "35%", alignSelf: "center" },
+            ]}
+          >
             <TouchableOpacity
-              style={[styles.actionButton, styles.chatButton]}
-              onPress={() => setChatVisible(true)}
-            >
-              <Text style={styles.actionText}>💬 Hacer Pregunta</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.actionButton, styles.signatureButton]}
+              style={[
+                styles.actionButton,
+                {
+                  backgroundColor: "#1E88E5",
+                  borderRadius: 30,
+                  paddingVertical: 14,
+                  paddingHorizontal: 30,
+                },
+              ]}
               onPress={() => setSignatureModalVisible(true)}
             >
               <Text style={styles.actionText}>
-                ✍️ {signaturePaths.length > 0 ? "Cambiar Firma" : "Firmar"}
+                ✍️{" "}
+                {signaturePaths.length > 0
+                  ? "Cambiar Firma"
+                  : "Firmar Contrato"}
               </Text>
             </TouchableOpacity>
           </View>
 
+          {/* Controles de colocación */}
           {placingSignature && (
             <View style={styles.placementControls}>
               <Text style={styles.placementText}>
-                Arrastra la firma a la posición deseada en el PDF
+                Arrastra la firma a la posición deseada
               </Text>
               <TouchableOpacity
-                style={styles.confirmPlacementButton}
+                style={[
+                  styles.confirmPlacementButton,
+                  { backgroundColor: "#1E88E5" },
+                ]}
                 onPress={handleConfirmSignaturePlacement}
               >
                 <Text style={styles.confirmPlacementText}>
@@ -278,15 +248,7 @@ const PdfViewerScreen: React.FC = () => {
         </ScrollView>
       </View>
 
-      <ChatModal
-        visible={chatVisible}
-        messages={messages}
-        inputText={inputText}
-        onClose={() => setChatVisible(false)}
-        onSend={sendMessage}
-        onChangeText={setInputText}
-      />
-
+      {/* Modales */}
       <SignatureModal
         visible={signatureModalVisible}
         onClose={() => setSignatureModalVisible(false)}

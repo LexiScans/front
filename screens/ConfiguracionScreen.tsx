@@ -17,19 +17,47 @@ const ConfiguracionScreen = () => {
   const [twoFactorAuth, setTwoFactorAuth] = useState(false);
   const [language, setLanguage] = useState("español");
 
+  const handleTermsAndConditions = () => {
+    navigation.navigate("TermsAndConditions" as never);
+  };
+
+  const handleGoBack = () => {
+    navigation.goBack();
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
+          <TouchableOpacity style={styles.backButton} onPress={handleGoBack}>
+            <Ionicons name="arrow-back" size={24} color="#6B7280" />
+          </TouchableOpacity>
           <Text style={styles.headerTitle}>Configuración</Text>
+          <View style={styles.placeholder} />
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Perfil</Text>
+
+          <TouchableOpacity style={styles.menuItem}>
+            <View style={styles.menuItemLeft}>
+              <Ionicons name="person-outline" size={22} color="#6B7280" />
+              <Text style={styles.menuItemText}>Editor Perfil</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color="#9CA3AF" />
+          </TouchableOpacity>
         </View>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Notificaciones</Text>
-          
+
           <View style={styles.menuItem}>
             <View style={styles.menuItemLeft}>
-              <Ionicons name="notifications-outline" size={22} color="#6B7280" />
+              <Ionicons
+                name="notifications-outline"
+                size={22}
+                color="#6B7280"
+              />
               <Text style={styles.menuItemText}>Notificaciones Push</Text>
             </View>
             <Switch
@@ -43,11 +71,17 @@ const ConfiguracionScreen = () => {
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Seguridad</Text>
-          
+
           <View style={styles.menuItem}>
             <View style={styles.menuItemLeft}>
-              <Ionicons name="shield-checkmark-outline" size={22} color="#6B7280" />
-              <Text style={styles.menuItemText}>Autenticación de dos factores</Text>
+              <Ionicons
+                name="shield-checkmark-outline"
+                size={22}
+                color="#6B7280"
+              />
+              <Text style={styles.menuItemText}>
+                Autenticación de dos factores
+              </Text>
             </View>
             <Switch
               value={twoFactorAuth}
@@ -68,7 +102,7 @@ const ConfiguracionScreen = () => {
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>General</Text>
-          
+
           <TouchableOpacity style={styles.menuItem}>
             <View style={styles.menuItemLeft}>
               <Ionicons name="language-outline" size={22} color="#6B7280" />
@@ -80,9 +114,16 @@ const ConfiguracionScreen = () => {
             </View>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.menuItem}>
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={handleTermsAndConditions}
+          >
             <View style={styles.menuItemLeft}>
-              <Ionicons name="document-text-outline" size={22} color="#6B7280" />
+              <Ionicons
+                name="document-text-outline"
+                size={22}
+                color="#6B7280"
+              />
               <Text style={styles.menuItemText}>Términos y condiciones</Text>
             </View>
             <Ionicons name="chevron-forward" size={18} color="#9CA3AF" />
@@ -110,16 +151,25 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 20,
-    paddingBottom: 40,
+    paddingBottom: 80,
   },
   header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: 40,
     marginBottom: 30,
   },
+  backButton: {
+    padding: 8,
+  },
   headerTitle: {
-    fontSize: 28,
+    fontSize: 22,
     fontWeight: "700",
-    color: "#111827",
-    textAlign: "center",
+    color: "#1F2937",
+  },
+  placeholder: {
+    width: 40,
   },
   section: {
     marginBottom: 24,

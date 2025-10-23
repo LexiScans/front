@@ -32,17 +32,16 @@ const PaymentToBuyScreen = () => {
   const { plan } = route.params as { plan: string };
   const navigation = useNavigation();
 
-  // Precios actualizados según los nuevos planes
   const planPrices = {
-    "BASIC": "$4.99",
-    "MEDIUM": "$14.99", 
-    "FULL": "$29.99"
+    BASIC: "$4.99",
+    MEDIUM: "$14.99",
+    FULL: "$29.99",
   };
 
   const planDisplayNames = {
-    "BASIC": "Básico",
-    "MEDIUM": "Medium",
-    "FULL": "Full"
+    BASIC: "Básico",
+    MEDIUM: "Medium",
+    FULL: "Full",
   };
 
   const getPlanPrice = (planType: string) => {
@@ -56,7 +55,7 @@ const PaymentToBuyScreen = () => {
   const fetchCards = async () => {
     try {
       const response = await fetch(
-        `http://10.0.2.2:8081/payment/methods/user/45224151-7b09-45ff-835b-413062c2e815`
+        `http://10.0.2.2:8081/payment/methods/user/${USER_ID}`
       );
       const data = await response.json();
 
@@ -82,7 +81,7 @@ const PaymentToBuyScreen = () => {
   const crearSuscripcion = async () => {
     try {
       const nuevaSuscripcion = {
-        userId: "45224151-7b09-45ff-835b-413062c2e815",
+        userId: USER_ID,
         namePlan: plan,
       };
 
@@ -97,12 +96,16 @@ const PaymentToBuyScreen = () => {
       }
 
       const data = await response.json();
-      Alert.alert("Éxito", `Suscripción ${getPlanDisplayName(plan)} activada correctamente`, [
-        {
-          text: "OK",
-          onPress: () => navigation.goBack()
-        }
-      ]);
+      Alert.alert(
+        "Éxito",
+        `Suscripción ${getPlanDisplayName(plan)} activada correctamente`,
+        [
+          {
+            text: "OK",
+            onPress: () => navigation.goBack(),
+          },
+        ]
+      );
     } catch (err: any) {
       Alert.alert("Error", err.message);
     }
@@ -114,7 +117,7 @@ const PaymentToBuyScreen = () => {
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Pasarela de Pagos</Text>
           <Text style={styles.subtitle}>Selecciona tu plan</Text>
-          
+
           <View style={styles.planOverview}>
             <View style={styles.planItem}>
               <Text style={styles.planName}>{getPlanDisplayName(plan)}</Text>
@@ -141,7 +144,10 @@ const PaymentToBuyScreen = () => {
                 color="#2563eb"
               />
               <View
-                style={[styles.cardWrapper, card.isDefault && styles.defaultCard]}
+                style={[
+                  styles.cardWrapper,
+                  card.isDefault && styles.defaultCard,
+                ]}
               >
                 {card.isDefault && (
                   <View style={styles.ribbon}>
@@ -152,10 +158,6 @@ const PaymentToBuyScreen = () => {
               </View>
             </View>
           ))}
-
-          <TouchableOpacity style={styles.addCardButton}>
-            <Text style={styles.addCardText}>+ Agregar nueva tarjeta</Text>
-          </TouchableOpacity>
         </View>
 
         <TouchableOpacity style={styles.payButton} onPress={crearSuscripcion}>
@@ -178,7 +180,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#F9FAFB",
   },
   scrollContent: {
-    padding: 20,
+    paddingTop: 80,
+    paddingHorizontal: 20,
     paddingBottom: 100,
   },
   header: {
@@ -289,7 +292,7 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   payButton: {
-    backgroundColor: "#2563eb",
+    backgroundColor: "#0b2e42ff",
     paddingVertical: 16,
     borderRadius: 12,
     alignItems: "center",

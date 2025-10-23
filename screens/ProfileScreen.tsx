@@ -26,7 +26,8 @@ type RootStackParamList = {
   Profile: undefined;
   BuySubscription: undefined;
   PaymentMethod: undefined;
-  Configuracion: undefined; 
+  Configuracion: undefined;
+  TermsAndConditions: undefined;
 };
 
 type UserData = {
@@ -40,46 +41,32 @@ type UserData = {
     ncontracts: number;
     nquestions: number;
   };
-  profileImage?: string; 
+  profileImage?: string;
 };
 
 const ProfileScreen = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-
   const [user, setUser] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-
   const userId = "45224151-7b09-45ff-835b-413062c2e815";
 
   useEffect(() => {
     fetch(`http://10.0.2.2:8080/users/${userId}`)
       .then((res) => res.json())
       .then((data) => {
-        console.log("Datos desde backend:", data);
         setUser(data);
       })
-      .catch((err) => console.error("Error al obtener usuario:", err))
+      .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
 
-  const handleLogout = () => {
-    navigation.navigate("Login");
-  };
+  const handleLogout = () => navigation.navigate("Login");
+  const handlePayment = () => navigation.navigate("PaymentMethod");
+  const handleBuyPlan = () => navigation.navigate("BuySubscription");
+  const handleConfiguracion = () => navigation.navigate("Configuracion");
 
-  const handlePayment = () => {
-    navigation.navigate("PaymentMethod");
-  };
-
-  const handleBuyPlan = () => {
-    navigation.navigate("BuySubscription");
-  };
-
-  const handleConfiguracion = () => {
-    navigation.navigate("Configuracion");
-  };
-  
   const handleCancelSubscription = async () => {
     try {
       const response = await fetch(
@@ -119,10 +106,13 @@ const ProfileScreen = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Mi Cuenta</Text>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.configButton}
             onPress={handleConfiguracion}
           >
@@ -169,7 +159,7 @@ const ProfileScreen = () => {
                 <Text style={styles.manageButtonText}>Gestionar Plan</Text>
               </TouchableOpacity>
             </View>
-            
+
             {user?.suscription ? (
               <>
                 <Text style={styles.planPrice}>{user.suscription.price}</Text>
@@ -182,14 +172,11 @@ const ProfileScreen = () => {
                 <Text style={styles.planDetails}>
                   Preguntas restantes: {user.suscription.nquestions}
                 </Text>
-                
                 <View style={styles.planActions}>
                   <BotonCancelar onPress={confirmCancel} />
                   <BotonMejorarPlan
                     currentPlan={user.suscription.type}
-                    onPress={(targetPlan) => {
-                      navigation.navigate("BuySubscription");
-                    }}
+                    onPress={() => navigation.navigate("BuySubscription")}
                   />
                 </View>
               </>
@@ -206,27 +193,13 @@ const ProfileScreen = () => {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Configuración</Text>
-          
-          <TouchableOpacity style={styles.menuItem}>
-            <View style={styles.menuItemLeft}>
-              <Ionicons name="person-outline" size={22} color="#6B7280" />
-              <Text style={styles.menuItemText}>Editor Perfil</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={18} color="#9CA3AF" />
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.menuItem}>
-            <View style={styles.menuItemLeft}>
-              <Ionicons name="shield-checkmark-outline" size={22} color="#6B7280" />
-              <Text style={styles.menuItemText}>Seguridad</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={18} color="#9CA3AF" />
-          </TouchableOpacity>
-
           <View style={styles.menuItem}>
             <View style={styles.menuItemLeft}>
-              <Ionicons name="notifications-outline" size={22} color="#6B7280" />
+              <Ionicons
+                name="notifications-outline"
+                size={22}
+                color="#6B7280"
+              />
               <Text style={styles.menuItemText}>Notificaciones</Text>
             </View>
             <Switch
@@ -245,13 +218,20 @@ const ProfileScreen = () => {
             <Ionicons name="chevron-forward" size={18} color="#9CA3AF" />
           </TouchableOpacity>
 
-          <TouchableOpacity style={[styles.menuItem, styles.logoutItem]} onPress={handleLogout}>
+          <TouchableOpacity
+            style={[styles.menuItem, styles.logoutItem]}
+            onPress={handleLogout}
+          >
             <View style={styles.menuItemLeft}>
               <Ionicons name="log-out-outline" size={22} color="#EF4444" />
-              <Text style={[styles.menuItemText, styles.logoutText]}>Cerrar Sesión</Text>
+              <Text style={[styles.menuItemText, styles.logoutText]}>
+                Cerrar Sesión
+              </Text>
             </View>
           </TouchableOpacity>
         </View>
+
+        <View style={styles.bottomSpacer} />
       </ScrollView>
 
       <BottomNav onPressCentral={() => {}} />
@@ -259,180 +239,90 @@ const ProfileScreen = () => {
   );
 };
 
-export default ProfileScreen;
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F9FAFB",
+    backgroundColor: "#fff",
   },
   scrollContent: {
-    padding: 16,
-    paddingBottom: 100,
+    flexGrow: 1,
+    padding: 20,
+    paddingBottom: 80,
   },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 24,
+    marginTop: 40,
   },
-  headerTitle: {
-    fontSize: 28,
-    fontWeight: "700",
-    color: "#111827",
-    flex: 1,
-    textAlign: "center",
-  },
-  configButton: {
-    padding: 8,
-    position: "absolute",
-    right: 0,
-  },
+  headerTitle: { fontSize: 22, fontWeight: "700", color: "#1F2937" },
+  configButton: { padding: 8 },
   userCard: {
-    backgroundColor: "white",
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 20,
-    shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 3,
+    backgroundColor: "#F3F4F6",
+    borderRadius: 12,
+    padding: 15,
+    marginTop: 20,
   },
-  userInfo: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  profileImage: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-  },
+  userInfo: { flexDirection: "row", alignItems: "center" },
+  profileImage: { width: 60, height: 60, borderRadius: 30 },
   profileIcon: {
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: "#F3F4F6",
+    backgroundColor: "#E5E7EB",
     justifyContent: "center",
     alignItems: "center",
   },
-  userDetails: {
-    marginLeft: 16,
-    flex: 1,
-  },
-  userName: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#111827",
-    marginBottom: 4,
-  },
-  userEmail: {
-    fontSize: 14,
-    color: "#6B7280",
-  },
-  section: {
-    marginBottom: 24,
-  },
+  userDetails: { marginLeft: 15 },
+  userName: { fontSize: 18, fontWeight: "600", color: "#111827" },
+  userEmail: { fontSize: 14, color: "#6B7280" },
+  section: { marginTop: 30 },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#111827",
-    marginBottom: 12,
-    paddingLeft: 4,
+    fontSize: 16,
+    fontWeight: "700",
+    marginBottom: 10,
+    color: "#374151",
   },
   paymentCard: {
-    backgroundColor: "white",
-    borderRadius: 12,
-    padding: 16,
     flexDirection: "row",
     alignItems: "center",
-    shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
-    elevation: 2,
+    backgroundColor: "#F9FAFB",
+    padding: 12,
+    borderRadius: 10,
+    justifyContent: "space-between",
   },
-  paymentText: {
-    fontSize: 16,
-    color: "#111827",
-    marginLeft: 12,
-    flex: 1,
-  },
-  planCard: {
-    backgroundColor: "white",
-    borderRadius: 16,
-    padding: 20,
-    shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 3,
-  },
+  paymentText: { flex: 1, marginLeft: 10, color: "#1F2937", fontSize: 15 },
+  planCard: { backgroundColor: "#F9FAFB", padding: 15, borderRadius: 12 },
   planHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 12,
   },
-  planName: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: "#111827",
-  },
-  manageButton: {
-    backgroundColor: "#6fa7c7ff",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
-  },
-  manageButtonText: {
-    color: "white",
-    fontSize: 12,
-    fontWeight: "600",
-  },
-  planPrice: {
-    fontSize: 24,
-    fontWeight: "700",
-    color: "#6fa7c7ff",
-    marginBottom: 8,
-  },
-  planDetails: {
-    fontSize: 14,
-    color: "#6B7280",
-    marginBottom: 4,
-  },
+  planName: { fontSize: 16, fontWeight: "700", color: "#111827" },
+  manageButton: { backgroundColor: "#E5E7EB", padding: 6, borderRadius: 6 },
+  manageButtonText: { color: "#374151", fontSize: 13 },
+  planPrice: { fontSize: 16, color: "#4B5563", marginTop: 5 },
+  planDetails: { fontSize: 14, color: "#6B7280", marginTop: 3 },
   planActions: {
-    marginTop: 16,
-    gap: 12,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 10,
   },
   menuItem: {
-    backgroundColor: "white",
-    borderRadius: 12,
-    padding: 16,
     flexDirection: "row",
-    alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: 8,
-    shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 1,
-  },
-  menuItemLeft: {
-    flexDirection: "row",
     alignItems: "center",
-    flex: 1,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#E5E7EB",
   },
-  menuItemText: {
-    fontSize: 16,
-    color: "#111827",
-    marginLeft: 12,
-    flex: 1,
-  },
-  logoutItem: {
-    marginTop: 8,
-    borderLeftWidth: 3,
-    borderLeftColor: "#EF4444",
-  },
-  logoutText: {
-    color: "#EF4444",
-    fontWeight: "600",
+  menuItemLeft: { flexDirection: "row", alignItems: "center" },
+  menuItemText: { fontSize: 15, marginLeft: 10, color: "#374151" },
+  logoutItem: { marginTop: 10 },
+  logoutText: { color: "#EF4444" },
+  bottomSpacer: {
+    height: 30,
   },
 });
+
+export default ProfileScreen;

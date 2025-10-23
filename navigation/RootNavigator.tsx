@@ -11,7 +11,8 @@ import BuySubscriptionScreen from "../screens/BuySubscriptionScreen";
 import PaymentToBuyScreen from "../screens/PaymentToBuyScreen";
 import PdfViewerScreen from "../screens/pdf/PdfViewerScreen";
 import ContractSummaryScreen from "../screens/ContractSummaryScreen";
-import ConfiguracionScreen from "../screens/ConfiguracionScreen"; 
+import ConfiguracionScreen from "../screens/ConfiguracionScreen";
+import TermsAndConditionsScreen from "../screens/TermsAndConditionsScreen"; 
 
 type RootStackParamList = {
   Welcome: undefined;
@@ -25,7 +26,8 @@ type RootStackParamList = {
   PaymentToBuy: undefined;
   PdfViewer: undefined;
   ContractSummary: undefined;
-  Configuracion: undefined; 
+  Configuracion: undefined;
+  TermsAndConditions: undefined; 
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -50,7 +52,11 @@ export default function RootNavigator() {
       />
       <Stack.Screen name="PdfViewer" component={PdfViewerScreen} />
       <Stack.Screen name="ContractSummary" component={ContractSummaryScreen} />
-      <Stack.Screen name="Configuracion" component={ConfiguracionScreen} /> 
+      <Stack.Screen name="Configuracion" component={ConfiguracionScreen} />
+      <Stack.Screen
+        name="TermsAndConditions"
+        component={TermsAndConditionsScreen} 
+      />
     </Stack.Navigator>
   );
 }
