@@ -12,6 +12,7 @@ import { RadioButton } from "react-native-paper";
 import BottomNav from "../components/BottomNav";
 import PaymentCard from "../components/PaymentCard";
 import { useNavigation, useRoute } from "@react-navigation/native";
+import { Ionicons } from "@expo/vector-icons";
 
 const COLORS = ["#171717", "#1E3A8A", "#1fac84ff", "#dd3737ff"];
 const USER_ID = "45224151-7b09-45ff-835b-413062c2e815";
@@ -32,17 +33,16 @@ const PaymentToBuyScreen = () => {
   const { plan } = route.params as { plan: string };
   const navigation = useNavigation();
 
-  // Precios actualizados según los nuevos planes
   const planPrices = {
-    "BASIC": "$4.99",
-    "MEDIUM": "$14.99", 
-    "FULL": "$29.99"
+    BASIC: "$4.99",
+    MEDIUM: "$14.99",
+    FULL: "$29.99",
   };
 
   const planDisplayNames = {
-    "BASIC": "Básico",
-    "MEDIUM": "Medium",
-    "FULL": "Full"
+    BASIC: "Básico",
+    MEDIUM: "Medium",
+    FULL: "Full",
   };
 
   const getPlanPrice = (planType: string) => {
@@ -56,7 +56,7 @@ const PaymentToBuyScreen = () => {
   const fetchCards = async () => {
     try {
       const response = await fetch(
-        `http://10.0.2.2:8081/payment/methods/user/45224151-7b09-45ff-835b-413062c2e815`
+        `http://10.0.2.2:8081/payment/methods/user/${USER_ID}`
       );
       const data = await response.json();
 
@@ -82,7 +82,7 @@ const PaymentToBuyScreen = () => {
   const crearSuscripcion = async () => {
     try {
       const nuevaSuscripcion = {
-        userId: "45224151-7b09-45ff-835b-413062c2e815",
+        userId: USER_ID,
         namePlan: plan,
       };
 
@@ -97,30 +97,43 @@ const PaymentToBuyScreen = () => {
       }
 
       const data = await response.json();
-      Alert.alert("Éxito", `Suscripción ${getPlanDisplayName(plan)} activada correctamente`, [
-        {
-          text: "OK",
-          onPress: () => navigation.goBack()
-        }
-      ]);
+      Alert.alert(
+        "Éxito",
+        `Suscripción ${getPlanDisplayName(plan)} activada correctamente`,
+        [
+          {
+            text: "OK",
+            onPress: () => navigation.goBack(),
+          },
+        ]
+      );
     } catch (err: any) {
       Alert.alert("Error", err.message);
     }
+  };
+
+  const handleGoBack = () => {
+    navigation.goBack();
   };
 
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
+          <TouchableOpacity style={styles.backButton} onPress={handleGoBack}>
+            <Ionicons name="arrow-back" size={24} color="#0b2e42ff" />
+          </TouchableOpacity>
           <Text style={styles.headerTitle}>Pasarela de Pagos</Text>
-          <Text style={styles.subtitle}>Selecciona tu plan</Text>
-          
-          <View style={styles.planOverview}>
-            <View style={styles.planItem}>
-              <Text style={styles.planName}>{getPlanDisplayName(plan)}</Text>
-              <Text style={styles.planPrice}>{getPlanPrice(plan)}</Text>
-              <Text style={styles.planPeriod}>/mes</Text>
-            </View>
+          <View style={styles.placeholder} />
+        </View>
+
+        <Text style={styles.subtitle}>Selecciona tu plan</Text>
+
+        <View style={styles.planOverview}>
+          <View style={styles.planItem}>
+            <Text style={styles.planName}>{getPlanDisplayName(plan)}</Text>
+            <Text style={styles.planPrice}>{getPlanPrice(plan)}</Text>
+            <Text style={styles.planPeriod}>/mes</Text>
           </View>
         </View>
 
@@ -138,11 +151,9 @@ const PaymentToBuyScreen = () => {
                 value={card.id}
                 status={selectedCard === card.id ? "checked" : "unchecked"}
                 onPress={() => setSelectedCard(card.id)}
-                color="#2563eb"
+                color="#0b2e42ff"
               />
-              <View
-                style={[styles.cardWrapper, card.isDefault && styles.defaultCard]}
-              >
+              <View style={styles.cardWrapper}>
                 {card.isDefault && (
                   <View style={styles.ribbon}>
                     <Text style={styles.ribbonText}>Predeterminada</Text>
@@ -152,10 +163,6 @@ const PaymentToBuyScreen = () => {
               </View>
             </View>
           ))}
-
-          <TouchableOpacity style={styles.addCardButton}>
-            <Text style={styles.addCardText}>+ Agregar nueva tarjeta</Text>
-          </TouchableOpacity>
         </View>
 
         <TouchableOpacity style={styles.payButton} onPress={crearSuscripcion}>
@@ -178,18 +185,28 @@ const styles = StyleSheet.create({
     backgroundColor: "#F9FAFB",
   },
   scrollContent: {
-    padding: 20,
+    paddingTop: 60,
+    paddingHorizontal: 20,
     paddingBottom: 100,
   },
   header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     marginBottom: 20,
   },
+  backButton: {
+    padding: 8,
+    backgroundColor: "#f8fafc",
+    borderRadius: 8,
+  },
   headerTitle: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#111827",
-    textAlign: "center",
-    marginBottom: 8,
+    fontSize: 22,
+    fontWeight: "700",
+    color: "#0b2e42ff",
+  },
+  placeholder: {
+    width: 40,
   },
   subtitle: {
     fontSize: 16,
@@ -218,7 +235,7 @@ const styles = StyleSheet.create({
   planPrice: {
     fontSize: 28,
     fontWeight: "bold",
-    color: "#2563eb",
+    color: "#0b2e42ff",
     marginBottom: 4,
   },
   planPeriod: {
@@ -256,15 +273,11 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     flex: 1,
   },
-  defaultCard: {
-    borderWidth: 2,
-    borderColor: "#2563eb",
-  },
   ribbon: {
     position: "absolute",
     top: -2,
     left: 0,
-    backgroundColor: "#2563eb",
+    backgroundColor: "#0b2e42ff",
     paddingVertical: 2,
     paddingHorizontal: 8,
     borderBottomRightRadius: 6,
@@ -275,25 +288,17 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "700",
   },
-  addCardButton: {
-    borderColor: "#2563eb",
-    borderWidth: 1,
-    paddingVertical: 12,
-    borderRadius: 8,
-    alignItems: "center",
-    marginTop: 8,
-  },
-  addCardText: {
-    color: "#2563eb",
-    fontSize: 16,
-    fontWeight: "600",
-  },
   payButton: {
-    backgroundColor: "#2563eb",
+    backgroundColor: "#0b2e42ff",
     paddingVertical: 16,
     borderRadius: 12,
     alignItems: "center",
     marginTop: 20,
+    shadowColor: "#0b2e42ff",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
   },
   payButtonText: {
     color: "white",

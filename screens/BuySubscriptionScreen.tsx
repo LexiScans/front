@@ -1,14 +1,15 @@
 import React from "react";
-import { 
-  SafeAreaView, 
-  ScrollView, 
-  StyleSheet, 
-  Text, 
+import {
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
   View,
-  TouchableOpacity 
+  TouchableOpacity,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { Ionicons } from "@expo/vector-icons";
 
 type RootStackParamList = {
   Login: undefined;
@@ -25,14 +26,18 @@ const BuySubscriptionScreen = () => {
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   const handleSelectPlan = (plan: string) => {
-    console.log("Seleccionaste:", plan);
     navigation.navigate("PaymentToBuy", { plan });
+  };
+
+  const handleGoBack = () => {
+    navigation.goBack();
   };
 
   const plans = [
     {
       title: "Básico",
-      description: "Plan económico que permite procesar más contratos, hacer preguntas básicas y descargar resultados.",
+      description:
+        "Plan económico que permite procesar más contratos, hacer preguntas básicas y descargar resultados.",
       price: "$4.99/mes",
       contracts: "10 contratos / mes",
       questions: "2 preguntas incluidas",
@@ -40,11 +45,12 @@ const BuySubscriptionScreen = () => {
       ads: "Publicidad: No",
       buttonText: "Seleccionar Plan",
       onPress: () => handleSelectPlan("BASIC"),
-      isCurrent: false
+      isCurrent: false,
     },
     {
-      title: "Medium", 
-      description: "Plan completo para profesionales, con alto volumen de contratos y mayor capacidad de interacción.",
+      title: "Medium",
+      description:
+        "Plan completo para profesionales, con alto volumen de contratos y mayor capacidad de interacción.",
       price: "$14.99/mes",
       contracts: "70 contratos / mes",
       questions: "10 preguntas incluidas",
@@ -52,7 +58,7 @@ const BuySubscriptionScreen = () => {
       ads: "Publicidad: No",
       buttonText: "Seleccionar Plan",
       onPress: () => handleSelectPlan("MEDIUM"),
-      isCurrent: false
+      isCurrent: false,
     },
     {
       title: "Full",
@@ -64,50 +70,58 @@ const BuySubscriptionScreen = () => {
       ads: "Publicidad: No",
       buttonText: "Seleccionar Plan",
       onPress: () => handleSelectPlan("FULL"),
-      isCurrent: false
-    }
+      isCurrent: false,
+    },
   ];
 
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        <Text style={styles.headerTitle}>Planes de Suscripción</Text>
-        
+        <View style={styles.header}>
+          <TouchableOpacity style={styles.backButton} onPress={handleGoBack}>
+            <Ionicons name="arrow-back" size={24} color="#0b2e42ff" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Planes de Suscripción</Text>
+          <View style={styles.placeholder} />
+        </View>
+
         {plans.map((plan, index) => (
           <View key={index} style={styles.planCard}>
             <View style={styles.planHeader}>
               <Text style={styles.planTitle}>{plan.title}</Text>
             </View>
-            
+
             <Text style={styles.planDescription}>{plan.description}</Text>
-            
+
             <View style={styles.planDetails}>
               <Text style={styles.planDetail}>{plan.contracts}</Text>
               <Text style={styles.planDetail}>{plan.questions}</Text>
               <Text style={styles.planDetail}>{plan.pdf}</Text>
               <Text style={styles.planDetail}>{plan.ads}</Text>
             </View>
-            
+
             <View style={styles.priceContainer}>
               <Text style={styles.planPrice}>{plan.price}</Text>
             </View>
-            
-            <TouchableOpacity 
+
+            <TouchableOpacity
               style={[
                 styles.selectButton,
-                plan.isCurrent && styles.currentPlanButton
+                plan.isCurrent && styles.currentPlanButton,
               ]}
               onPress={plan.onPress}
               disabled={plan.isCurrent}
             >
-              <Text style={[
-                styles.buttonText,
-                plan.isCurrent && styles.currentButtonText
-              ]}>
+              <Text
+                style={[
+                  styles.buttonText,
+                  plan.isCurrent && styles.currentButtonText,
+                ]}
+              >
                 {plan.buttonText}
               </Text>
             </TouchableOpacity>
-            
+
             {index < plans.length - 1 && <View style={styles.divider} />}
           </View>
         ))}
@@ -124,15 +138,28 @@ const styles = StyleSheet.create({
     backgroundColor: "#F9FAFB",
   },
   scrollContent: {
-    padding: 20,
+    paddingTop: 60,
+    paddingHorizontal: 20,
     paddingBottom: 40,
   },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#111827",
-    textAlign: "center",
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     marginBottom: 30,
+  },
+  backButton: {
+    padding: 8,
+    backgroundColor: "#f8fafc",
+    borderRadius: 8,
+  },
+  headerTitle: {
+    fontSize: 22,
+    fontWeight: "700",
+    color: "#0b2e42ff",
+  },
+  placeholder: {
+    width: 40,
   },
   planCard: {
     backgroundColor: "white",
@@ -177,7 +204,7 @@ const styles = StyleSheet.create({
     color: "#111827",
   },
   selectButton: {
-    backgroundColor: "#6fa7c7ff",
+    backgroundColor: "#0b2e42ff",
     paddingVertical: 12,
     paddingHorizontal: 24,
     borderRadius: 8,
