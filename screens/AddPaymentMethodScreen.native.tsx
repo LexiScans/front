@@ -23,20 +23,14 @@ const AddPaymentMethodScreen = ({ navigation }: any) => {
     try {
       const response = await fetch(
         `http://10.0.2.2:8081/payment/create-setup-intent?customerId=cus_T94eOMGUfePnLl`,
-        {
-          method: "POST",
-        }
+        { method: "POST" }
       );
 
       const data = await response.json();
 
-      if (!response.ok) {
-        throw new Error(data.message || "Error al obtener el clientSecret");
-      }
+      if (!response.ok) throw new Error(data.message || "Error al obtener el clientSecret");
 
-      const clientSecret = data.clientSecret;
-
-      const { setupIntent, error } = await confirmSetupIntent(clientSecret, {
+      const { setupIntent, error } = await confirmSetupIntent(data.clientSecret, {
         paymentMethodType: "Card",
       });
 
@@ -56,21 +50,17 @@ const AddPaymentMethodScreen = ({ navigation }: any) => {
           defaultPayment: true,
         };
 
-        const addMethodResponse = await fetch(
-          "http://10.0.2.2:8081/payment/addMethod",
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(addMethodBody),
-          }
-        );
+        const addMethodResponse = await fetch("http://10.0.2.2:8081/payment/addMethod", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(addMethodBody),
+        });
 
         if (!addMethodResponse.ok) {
           const errData = await addMethodResponse.json();
           throw new Error(errData.message || "Error al agregar método de pago");
         }
 
-        console.log("Método agregado en backend correctamente");
         navigation.goBack();
       }
     } catch (err: any) {
@@ -91,7 +81,7 @@ const AddPaymentMethodScreen = ({ navigation }: any) => {
           placeholders={{ number: "4242 4242 4242 4242" }}
           cardStyle={styles.card}
           style={styles.cardContainer}
-          onCardChange={(details) => setCardDetails(details)}
+          onCardChange={(details: any) => setCardDetails(details)}
         />
 
         <TouchableOpacity style={styles.button} onPress={handleAddCard}>
@@ -107,18 +97,8 @@ export default AddPaymentMethodScreen;
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#F9FAFB" },
   scroll: { flexGrow: 1, padding: 20, marginTop: 60 },
-  title: {
-    fontSize: 24,
-    fontWeight: "700",
-    textAlign: "center",
-    marginBottom: 6,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: "#6B7280",
-    textAlign: "center",
-    marginBottom: 20,
-  },
+  title: { fontSize: 24, fontWeight: "700", textAlign: "center", marginBottom: 6 },
+  subtitle: { fontSize: 16, color: "#6B7280", textAlign: "center", marginBottom: 20 },
   card: { backgroundColor: "#FFFFFF", textColor: "#111827" },
   cardContainer: { height: 50, marginVertical: 30 },
   button: {

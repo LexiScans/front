@@ -18,7 +18,7 @@ import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
 type RootStackParamList = {
   Home: undefined;
-  PdfViewer: undefined;
+  ContractSummary: undefined;
 };
 
 const dummyContracts = [
@@ -48,7 +48,7 @@ export default function HomeScreen() {
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   const openPdfViewer = () => {
-    navigation.navigate("PdfViewer");
+    navigation.navigate("ContractSummary");
   };
 
   return (
