@@ -6,6 +6,7 @@ import {
     TouchableOpacity,
     StyleSheet,
     ScrollView,
+    SafeAreaView,
 } from "react-native";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
@@ -17,65 +18,67 @@ export default function PrevisualizacionContrato() {
     const { fileName } = route.params || {};
 
     return (
-        <ScrollView contentContainerStyle={styles.container}>
-            {/* Header */}
-            <View style={styles.header}>
-                <TouchableOpacity onPress={() => navigation.goBack()}>
-                    <Ionicons name="arrow-back" size={22} color={Colors.text} />
+        <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
+            <ScrollView contentContainerStyle={styles.container}>
+                {/* Header */}
+                <View style={styles.header}>
+                    <TouchableOpacity onPress={() => navigation.goBack()}>
+                        <Ionicons name="arrow-back" size={22} color={Colors.text} />
+                    </TouchableOpacity>
+                    <Text style={styles.headerTitle}>Previsualización</Text>
+                </View>
+
+                {/* Paso */}
+                <Text style={styles.step}>Paso 2 de 3</Text>
+                <View style={styles.progressContainer}>
+                    <View style={styles.progressBar} />
+                </View>
+
+                <View style={styles.previewBox}>
+                    <Image
+                        source={require("../assets/logoSinFondo.png")}
+                        style={styles.previewImage}
+                    />
+                    <Text style={styles.fileName}>{fileName || "Contrato_Arrendamiento.pdf"}</Text>
+                    <Text style={styles.fileDetails}>1.2 MB - 5 páginas</Text>
+                </View>
+
+                <View style={styles.infoBox}>
+                    <View style={styles.infoRow}>
+                        <Ionicons name="checkmark-circle" size={22} color="green" />
+                        <View style={styles.infoText}>
+                            <Text style={styles.infoTitle}>Documento legible</Text>
+                            <Text style={styles.infoDesc}>La calidad del escaneo es óptima.</Text>
+                        </View>
+                    </View>
+
+                    <View style={styles.infoRow}>
+                        <Ionicons name="id-card-outline" size={22} color="green" />
+                        <View style={styles.infoText}>
+                            <Text style={styles.infoTitle}>Firmas detectadas</Text>
+                            <Text style={styles.infoDesc}>Se encontraron 2 firmas en el documento.</Text>
+                        </View>
+                    </View>
+                </View>
+
+                {/* Botones */}
+                <TouchableOpacity
+                    style={styles.analyzeBtn}
+                    onPress={() => navigation.navigate("UploadSuccess")}
+                >
+                    <Ionicons name="sparkles-outline" size={18} color="#fff" />
+                    <Text style={styles.analyzeText}>Analizar con IA</Text>
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>Previsualización</Text>
-            </View>
-
-            {/* Paso */}
-            <Text style={styles.step}>Paso 2 de 3</Text>
-            <View style={styles.progressContainer}>
-                <View style={styles.progressBar} />
-            </View>
-
-            <View style={styles.previewBox}>
-                <Image
-                    source={require("../assets/logoSinFondo.png")}
-                    style={styles.previewImage}
-                />
-                <Text style={styles.fileName}>{fileName || "Contrato_Arrendamiento.pdf"}</Text>
-                <Text style={styles.fileDetails}>1.2 MB - 5 páginas</Text>
-            </View>
-
-            <View style={styles.infoBox}>
-                <View style={styles.infoRow}>
-                    <Ionicons name="checkmark-circle" size={22} color="green" />
-                    <View style={styles.infoText}>
-                        <Text style={styles.infoTitle}>Documento legible</Text>
-                        <Text style={styles.infoDesc}>La calidad del escaneo es óptima.</Text>
-                    </View>
-                </View>
-
-                <View style={styles.infoRow}>
-                    <Ionicons name="id-card-outline" size={22} color="green" />
-                    <View style={styles.infoText}>
-                        <Text style={styles.infoTitle}>Firmas detectadas</Text>
-                        <Text style={styles.infoDesc}>Se encontraron 2 firmas en el documento.</Text>
-                    </View>
-                </View>
-            </View>
-
-            {/* Botones */}
-            <TouchableOpacity
-                style={styles.analyzeBtn}
-                onPress={() => navigation.navigate("UploadSuccess")} 
-            >
-                <Ionicons name="sparkles-outline" size={18} color="#fff" />
-                <Text style={styles.analyzeText}>Analizar con IA</Text>
-            </TouchableOpacity>
 
 
-            <TouchableOpacity
-                onPress={() => navigation.navigate("DetallesContrato")}
-                style={styles.uploadAnother}
-            >
-                <Text style={styles.uploadText}>Subir otro archivo</Text>
-            </TouchableOpacity>
-        </ScrollView>
+                <TouchableOpacity
+                    onPress={() => navigation.navigate("DetallesContrato")}
+                    style={styles.uploadAnother}
+                >
+                    <Text style={styles.uploadText}>Subir otro archivo</Text>
+                </TouchableOpacity>
+            </ScrollView>
+        </SafeAreaView>
     );
 }
 
@@ -86,6 +89,7 @@ const styles = StyleSheet.create({
         flexGrow: 1,
     },
     header: {
+        marginTop: 50,
         flexDirection: "row",
         alignItems: "center",
         marginBottom: 12,

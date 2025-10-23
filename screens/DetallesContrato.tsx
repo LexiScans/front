@@ -6,179 +6,180 @@ import {
     TouchableOpacity,
     ScrollView,
     StyleSheet,
-    Alert,
+    Platform,
+    SafeAreaView,
 } from "react-native";
-import { useNavigation, useRoute } from "@react-navigation/native";
-import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import RNPickerSelect from "react-native-picker-select";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import { Colors } from "../theme";
+import { useNavigation } from "@react-navigation/native";
 
-type RootStackParamList = {
-    Home: undefined;
-    UploadModal: undefined;
-    DetallesContrato: { fileUri?: string; fileName?: string };
-    PrevisualizacionContrato: {
-        fileUri?: string;
-        fileName?: string;
-        titulo: string;
-        tipo: string;
-        parteA: string;
-        parteB: string;
-        fechaFirma: string;
-        vencimiento: string;
-    };
-    ContractSummary: undefined;
-};
-
-
-type DetallesContratoRouteProp = {
-    key: string;
-    name: "DetallesContrato";
-    params?: { fileUri?: string; fileName?: string };
-};
+interface Parte {
+    nombre: string;
+}
 
 export default function DetallesContrato() {
-    const navigation =
-        useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-    const route = useRoute<DetallesContratoRouteProp>();
-
-    const { fileUri, fileName } = route.params || {};
-
+    const navigation = useNavigation();
     const [titulo, setTitulo] = useState("");
     const [tipo, setTipo] = useState("");
-    const [parteA, setParteA] = useState("");
-    const [parteB, setParteB] = useState("");
-    const [fechaFirma, setFechaFirma] = useState("");
-    const [vencimiento, setVencimiento] = useState("");
+    const [partes, setPartes] = useState<Parte[]>([{ nombre: "" }]);
+    const [fechaFirma, setFechaFirma] = useState<Date | null>(null);
+    const [vencimiento, setVencimiento] = useState<Date | null>(null);
     const [notas, setNotas] = useState("");
 
+    const [mostrarFirmaPicker, setMostrarFirmaPicker] = useState(false);
+    const [mostrarVencimientoPicker, setMostrarVencimientoPicker] = useState(false);
+
     const tiposContrato = [
-        "Empleo",
-        "Servicios",
-        "Arrendamiento",
-        "Confidencialidad",
-        "Ventas",
-        "Licencia",
-        "Préstamo",
+        { label: "Empleo", value: "Empleo" },
+        { label: "Servicios", value: "Servicios" },
+        { label: "Arrendamiento", value: "Arrendamiento" },
+        { label: "Confidencialidad", value: "Confidencialidad" },
+        { label: "Ventas", value: "Ventas" },
+        { label: "Licencia", value: "Licencia" },
+        { label: "Préstamo", value: "Préstamo" },
     ];
 
-    const handleNext = () => {
-        if (!titulo || !tipo) {
-            Alert.alert("Campos incompletos", "Por favor, completa los campos requeridos.");
-            return;
-        }
-        navigation.navigate("PrevisualizacionContrato", {
-            fileName,
-            fileUri,
-            titulo,
-            tipo,
-            parteA,
-            parteB,
-            fechaFirma,
-            vencimiento,
-        });
+    const agregarParte = () => setPartes([...partes, { nombre: "" }]);
+
+    const actualizarParte = (index: number, valor: string) => {
+        const nuevasPartes = [...partes];
+        nuevasPartes[index].nombre = valor;
+        setPartes(nuevasPartes);
+    };
+
+    const formatearFecha = (fecha: Date | null) => {
+        if (!fecha) return "";
+        const year = fecha.getFullYear();
+        const month = (fecha.getMonth() + 1).toString().padStart(2, "0");
+        const day = fecha.getDate().toString().padStart(2, "0");
+        return `${year}-${month}-${day}`;
     };
 
     return (
-        <ScrollView contentContainerStyle={styles.container}>
-            <Text style={styles.title}>Detalles del Contrato</Text>
-            <Text style={styles.subtitle}>Paso 1 de 3</Text>
+        <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
+            <ScrollView contentContainerStyle={styles.container}>
+                <Text style={styles.title}>Detalles del Contrato</Text>
+                <Text style={styles.subtitle}>Paso 1 de 3</Text>
 
-            <View style={styles.progressContainer}>
-                <View style={styles.progressBar} />
-            </View>
-
-            <Text style={styles.description}>
-                Completa la información clave del contrato para una mejor organización.
-            </Text>
-
-            {fileName && (
-                <View style={styles.fileBox}>
-                    <Text style={styles.fileTitle}>📄 {fileName}</Text>
-                    <Text style={styles.filePath}>{fileUri}</Text>
+                <View style={styles.progressContainer}>
+                    <View style={styles.progressBar} />
                 </View>
-            )}
 
-            <Text style={styles.label}>Título del Contrato</Text>
-            <TextInput
-                style={styles.input}
-                placeholder="Ej. Contrato de Arrendamiento"
-                value={titulo}
-                onChangeText={setTitulo}
-            />
+                <Text style={styles.description}>
+                    Completa la información clave de tu contrato para una mejor organización.
+                </Text>
 
-            <Text style={styles.label}>Tipo de Contrato</Text>
-            {tiposContrato.map((t, i) => (
-                <TouchableOpacity
-                    key={i}
-                    style={[
-                        styles.tipoBtn,
-                        tipo === t && { backgroundColor: Colors.primary, borderColor: Colors.primary },
-                    ]}
-                    onPress={() => setTipo(t)}
-                >
-                    <Text
-                        style={[
-                            styles.tipoText,
-                            tipo === t && { color: "#fff", fontWeight: "700" },
-                        ]}
-                    >
-                        {t}
-                    </Text>
+                {/* Título */}
+                <Text style={styles.label}>Título del Contrato</Text>
+                <TextInput
+                    style={styles.input}
+                    placeholder="Ej. Contrato de Arrendamiento"
+                    value={titulo}
+                    onChangeText={setTitulo}
+                />
+
+                {/* Tipo (Dropdown) */}
+                <Text style={styles.label}>Tipo de Contrato</Text>
+                <RNPickerSelect
+                    onValueChange={(value) => setTipo(value)}
+                    items={tiposContrato}
+                    placeholder={{ label: "Selecciona el tipo de contrato", value: null }}
+                    style={pickerSelectStyles}
+                    value={tipo}
+                />
+
+                {/* Partes involucradas */}
+                <Text style={styles.label}>Partes Involucradas</Text>
+                {partes.map((parte, index) => (
+                    <TextInput
+                        key={index}
+                        style={styles.input}
+                        placeholder="Ej. Juan Pérez"
+                        value={parte.nombre}
+                        onChangeText={(text) => actualizarParte(index, text)}
+                    />
+                ))}
+                <TouchableOpacity onPress={agregarParte}>
+                    <Text style={styles.addLink}>+ Añadir otra parte</Text>
                 </TouchableOpacity>
-            ))}
 
-            <Text style={styles.label}>Parte A</Text>
-            <TextInput
-                style={styles.input}
-                placeholder="Ej. Juan Pérez"
-                value={parteA}
-                onChangeText={setParteA}
-            />
+                {/* Fechas */}
+                <View style={styles.row}>
+                    <View style={{ flex: 1, marginRight: 6 }}>
+                        <Text style={styles.label}>Fecha de Firma</Text>
+                        <TouchableOpacity
+                            onPress={() => setMostrarFirmaPicker(true)}
+                            style={styles.input}
+                        >
+                            <Text>
+                                {fechaFirma ? formatearFecha(fechaFirma) : "Seleccionar fecha"}
+                            </Text>
+                        </TouchableOpacity>
 
-            <Text style={styles.label}>Parte B</Text>
-            <TextInput
-                style={styles.input}
-                placeholder="Ej. María Rodríguez"
-                value={parteB}
-                onChangeText={setParteB}
-            />
+                        {mostrarFirmaPicker && (
+                            <DateTimePicker
+                                value={fechaFirma || new Date()}
+                                mode="date"
+                                display={Platform.OS === "ios" ? "spinner" : "default"}
+                                onChange={(event, selectedDate) => {
+                                    setMostrarFirmaPicker(Platform.OS === "ios");
+                                    if (selectedDate) setFechaFirma(selectedDate);
+                                }}
+                            />
+                        )}
+                    </View>
 
-            <Text style={styles.label}>Fecha de Firma</Text>
-            <TextInput
-                style={styles.input}
-                placeholder="YYYY-MM-DD"
-                value={fechaFirma}
-                onChangeText={setFechaFirma}
-            />
+                    <View style={{ flex: 1, marginLeft: 6 }}>
+                        <Text style={styles.label}>Vencimiento</Text>
+                        <TouchableOpacity
+                            onPress={() => setMostrarVencimientoPicker(true)}
+                            style={styles.input}
+                        >
+                            <Text>
+                                {vencimiento ? formatearFecha(vencimiento) : "Seleccionar fecha"}
+                            </Text>
+                        </TouchableOpacity>
 
-            <Text style={styles.label}>Vencimiento</Text>
-            <TextInput
-                style={styles.input}
-                placeholder="YYYY-MM-DD"
-                value={vencimiento}
-                onChangeText={setVencimiento}
-            />
+                        {mostrarVencimientoPicker && (
+                            <DateTimePicker
+                                value={vencimiento || new Date()}
+                                mode="date"
+                                display={Platform.OS === "ios" ? "spinner" : "default"}
+                                onChange={(event, selectedDate) => {
+                                    setMostrarVencimientoPicker(Platform.OS === "ios");
+                                    if (selectedDate) setVencimiento(selectedDate);
+                                }}
+                            />
+                        )}
+                    </View>
+                </View>
 
-            <Text style={styles.label}>Notas</Text>
-            <TextInput
-                style={[styles.input, { height: 100, textAlignVertical: "top" }]}
-                placeholder="Añade comentarios o detalles importantes..."
-                value={notas}
-                onChangeText={setNotas}
-                multiline
-            />
+                {/* Notas */}
+                <Text style={styles.label}>Notas</Text>
+                <TextInput
+                    style={[styles.input, { height: 100, textAlignVertical: "top" }]}
+                    multiline
+                    placeholder="Añade comentarios o detalles importantes aquí..."
+                    value={notas}
+                    onChangeText={setNotas}
+                />
 
-            <TouchableOpacity style={styles.btnNext} onPress={handleNext}>
-                <Text style={styles.btnNextText}>Siguiente: Subir Archivo</Text>
-            </TouchableOpacity>
+                {/* Botones */}
+                <TouchableOpacity
+                    style={styles.nextBtn}
+                    onPress={() => navigation.navigate("PrevisualizacionContrato" as never)}
+                >
+                    <Text style={styles.nextText}>Siguiente: Subir Archivo</Text>
+                </TouchableOpacity>
 
-            <TouchableOpacity
-                style={styles.btnCancel}
-                onPress={() => navigation.navigate("Home")}
-            >
-                <Text style={styles.btnCancelText}>Cancelar</Text>
-            </TouchableOpacity>
-        </ScrollView>
+                <TouchableOpacity
+                    onPress={() => navigation.navigate("Home" as never)}
+                >
+                    <Text style={styles.cancelText}>Cancelar</Text>
+                </TouchableOpacity>
+            </ScrollView>
+        </SafeAreaView>
     );
 }
 
@@ -186,16 +187,16 @@ const styles = StyleSheet.create({
     container: {
         padding: 20,
         backgroundColor: "#fff",
-        flexGrow: 1,
     },
     title: {
         fontSize: 22,
         fontWeight: "700",
-        color: Colors.secondary,
+        color: Colors.text,
+        marginTop: 50,
     },
     subtitle: {
         color: Colors.textSecondary,
-        marginBottom: 6,
+        marginBottom: 4,
     },
     progressContainer: {
         height: 6,
@@ -220,53 +221,60 @@ const styles = StyleSheet.create({
     },
     input: {
         borderWidth: 1,
-        borderColor: "#cbd5e1",
+        borderColor: "#ccc",
         borderRadius: 8,
         padding: 10,
-        marginTop: 4,
-        color: Colors.text,
-    },
-    tipoBtn: {
-        borderWidth: 1,
-        borderColor: "#cbd5e1",
-        borderRadius: 6,
-        padding: 10,
         marginTop: 6,
+        backgroundColor: "#F9FAFB",
     },
-    tipoText: {
-        color: Colors.text,
+    addLink: {
+        color: Colors.primary,
+        fontWeight: "600",
+        marginTop: 8,
     },
-    btnNext: {
-        backgroundColor: "#0b2e42",
-        borderRadius: 10,
+    row: {
+        flexDirection: "row",
+        marginTop: 8,
+    },
+    nextBtn: {
+        backgroundColor: Colors.primary,
         paddingVertical: 14,
+        borderRadius: 10,
         alignItems: "center",
         marginTop: 20,
     },
-    btnNextText: {
+    nextText: {
         color: "#fff",
         fontWeight: "700",
     },
-    btnCancel: {
-        alignItems: "center",
-        paddingVertical: 10,
+    cancelText: {
+        color: Colors.textSecondary,
+        textAlign: "center",
         marginTop: 10,
     },
-    btnCancelText: {
-        color: Colors.textSecondary,
-    },
-    fileBox: {
-        backgroundColor: "#F8FAFC",
-        padding: 12,
+});
+
+const pickerSelectStyles = StyleSheet.create({
+    inputIOS: {
+        fontSize: 16,
+        paddingVertical: 12,
+        paddingHorizontal: 10,
+        borderWidth: 1,
+        borderColor: "#ccc",
         borderRadius: 8,
-        marginBottom: 12,
-    },
-    fileTitle: {
-        fontWeight: "600",
         color: Colors.text,
+        backgroundColor: "#F9FAFB",
+        marginTop: 6,
     },
-    filePath: {
-        fontSize: 12,
-        color: Colors.textSecondary,
+    inputAndroid: {
+        fontSize: 16,
+        paddingVertical: 8,
+        paddingHorizontal: 10,
+        borderWidth: 1,
+        borderColor: "#ccc",
+        borderRadius: 8,
+        color: Colors.text,
+        backgroundColor: "#F9FAFB",
+        marginTop: 6,
     },
 });

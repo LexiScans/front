@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import {View, Text, TouchableOpacity, StyleSheet, SafeAreaView} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { Colors } from "../theme";
@@ -8,45 +8,47 @@ export default function UploadSuccess() {
     const navigation = useNavigation();
 
     return (
-        <View style={styles.container}>
-            {/* Header */}
-            <View style={styles.header}>
-                <TouchableOpacity onPress={() => navigation.goBack()}>
-                    <Ionicons name="arrow-back" size={22} color={Colors.text} />
+        <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
+            <View style={styles.container}>
+                {/* Header */}
+                <View style={styles.header}>
+                    <TouchableOpacity onPress={() => navigation.goBack()}>
+                        <Ionicons name="arrow-back" size={22} color={Colors.text} />
+                    </TouchableOpacity>
+                    <Text style={styles.headerTitle}>Subir Contrato</Text>
+                </View>
+
+                <Text style={styles.step}>Paso 3 de 3</Text>
+                <View style={styles.progressContainer}>
+                    <View style={styles.progressBar} />
+                </View>
+
+                {/* Icono central */}
+                <View style={styles.iconCircle}>
+                    <Ionicons name="checkmark-circle" size={80} color="#16a34a" />
+                </View>
+
+                <Text style={styles.title}>¡Contrato subido!</Text>
+                <Text style={styles.subtitle}>
+                    Tu contrato se ha subido con éxito. Nuestra IA está lista para analizarlo y darte los
+                    insights que necesitas.
+                </Text>
+
+                <TouchableOpacity
+                    style={styles.analyzeBtn}
+                    onPress={() => navigation.navigate("ContractSummary")}
+                >
+                    <Text style={styles.analyzeText}>Iniciar análisis</Text>
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>Subir Contrato</Text>
+
+                <TouchableOpacity
+                    onPress={() => navigation.navigate("Home")}
+                    style={styles.laterBtn}
+                >
+                    <Text style={styles.laterText}>Analizar más tarde</Text>
+                </TouchableOpacity>
             </View>
-
-            <Text style={styles.step}>Paso 3 de 3</Text>
-            <View style={styles.progressContainer}>
-                <View style={styles.progressBar} />
-            </View>
-
-            {/* Icono central */}
-            <View style={styles.iconCircle}>
-                <Ionicons name="checkmark-circle" size={80} color="#16a34a" />
-            </View>
-
-            <Text style={styles.title}>¡Contrato subido!</Text>
-            <Text style={styles.subtitle}>
-                Tu contrato se ha subido con éxito. Nuestra IA está lista para analizarlo y darte los
-                insights que necesitas.
-            </Text>
-
-            <TouchableOpacity
-                style={styles.analyzeBtn}
-                onPress={() => navigation.navigate("ContractSummary")}
-            >
-                <Text style={styles.analyzeText}>Iniciar análisis</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-                onPress={() => navigation.navigate("Home")}
-                style={styles.laterBtn}
-            >
-                <Text style={styles.laterText}>Analizar más tarde</Text>
-            </TouchableOpacity>
-        </View>
+        </SafeAreaView>
     );
 }
 
@@ -58,6 +60,7 @@ const styles = StyleSheet.create({
         alignItems: "center",
     },
     header: {
+        marginTop: 50,
         flexDirection: "row",
         alignItems: "center",
         width: "100%",
