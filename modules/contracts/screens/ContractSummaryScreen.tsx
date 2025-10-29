@@ -12,7 +12,7 @@ import {
 import ProgressBar from "react-native-progress/Bar";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import ChatAssistantModal from "../components/ChatAssistantModal";
+import ChatAssistantModal from "../../../components/ChatAssistantModal";
 
 const { width } = Dimensions.get("window");
 

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import {
   View,
   Text,
@@ -9,18 +9,17 @@ import {
   Platform,
   Animated,
 } from "react-native";
-import { Colors } from "../theme";
+import { Colors } from "../../../../theme";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 
 type Props = NativeStackScreenProps<any, any>;
 
-export default function RegisterScreen({ navigation }: Props) {
-  const [name, setName] = useState("");
+export default function LoginScreen({ navigation }: Props) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
 
-  const btnScale = new Animated.Value(1);
+  const btnScale = useRef(new Animated.Value(1)).current;
+
   const onPressIn = () =>
     Animated.spring(btnScale, { toValue: 0.97, useNativeDriver: true }).start();
   const onPressOut = () =>
@@ -30,12 +29,7 @@ export default function RegisterScreen({ navigation }: Props) {
       useNativeDriver: true,
     }).start();
 
-  const handleRegister = () => {
-    if (password !== confirmPassword) {
-      alert("Las contraseñas no coinciden");
-      return;
-    }
-    // Aquí puedes agregar lógica de registro real (API, Firebase, etc.)
+  const handleLogin = () => {
     navigation.replace("Home");
   };
 
@@ -45,21 +39,14 @@ export default function RegisterScreen({ navigation }: Props) {
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
       <View style={styles.header}>
-        <Text style={styles.title}>Crear Cuenta</Text>
-        <Text style={styles.subtitle}>Únete a Lexiscan en segundos</Text>
+        <Text style={styles.title}>Lexiscan</Text>
+        <Text style={styles.subtitle}>
+          Analiza contratos de forma rápida y segura
+        </Text>
       </View>
 
       <View style={styles.form}>
-        <Text style={styles.label}>Nombre completo</Text>
-        <TextInput
-          placeholder="Juan Pérez"
-          placeholderTextColor="#9AA9B3"
-          style={styles.input}
-          value={name}
-          onChangeText={setName}
-        />
-
-        <Text style={[styles.label, { marginTop: 16 }]}>Email</Text>
+        <Text style={styles.label}>Email</Text>
         <TextInput
           keyboardType="email-address"
           placeholder="tu@correo.com"
@@ -79,18 +66,6 @@ export default function RegisterScreen({ navigation }: Props) {
           onChangeText={setPassword}
         />
 
-        <Text style={[styles.label, { marginTop: 16 }]}>
-          Confirmar contraseña
-        </Text>
-        <TextInput
-          placeholder="••••••••"
-          placeholderTextColor="#9AA9B3"
-          secureTextEntry
-          style={styles.input}
-          value={confirmPassword}
-          onChangeText={setConfirmPassword}
-        />
-
         <Animated.View
           style={{ transform: [{ scale: btnScale }], marginTop: 24 }}
         >
@@ -98,18 +73,18 @@ export default function RegisterScreen({ navigation }: Props) {
             activeOpacity={0.9}
             onPressIn={onPressIn}
             onPressOut={onPressOut}
-            onPress={handleRegister}
-            style={styles.registerButton}
+            onPress={handleLogin}
+            style={styles.loginButton}
           >
-            <Text style={styles.registerButtonText}>Registrarse</Text>
+            <Text style={styles.loginButtonText}>Acceder</Text>
           </TouchableOpacity>
         </Animated.View>
 
         <TouchableOpacity
-          style={styles.login}
-          onPress={() => navigation.navigate("Login")}
+          style={styles.register}
+          onPress={() => navigation.navigate("Register")}
         >
-          <Text style={styles.loginText}>¿Ya tienes cuenta? Inicia sesión</Text>
+          <Text style={styles.registerText}>¿No tienes cuenta? Regístrate</Text>
         </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
@@ -143,14 +118,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     color: Colors.text,
   },
-  registerButton: {
+  loginButton: {
     height: 50,
     borderRadius: 12,
     backgroundColor: Colors.primary,
     justifyContent: "center",
     alignItems: "center",
   },
-  registerButtonText: { color: "white", fontWeight: "700", fontSize: 16 },
-  login: { marginTop: 12, alignItems: "center" },
-  loginText: { color: Colors.accent, fontWeight: "600" },
+  loginButtonText: { color: "white", fontWeight: "700", fontSize: 16 },
+  register: { marginTop: 12, alignItems: "center" },
+  registerText: { color: Colors.accent, fontWeight: "600" },
 });

@@ -5,7 +5,6 @@ import {
   TouchableOpacity,
   SafeAreaView,
   ScrollView,
-  StyleSheet,
   ActivityIndicator,
   Alert,
   Image,
@@ -13,11 +12,14 @@ import {
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import BottomNav from "../components/BottomNav";
 import { Ionicons } from "@expo/vector-icons";
-import BotonEscoger from "../components/BotonEscoger";
-import BotonCancelar from "../components/BotonCancelar";
-import BotonMejorarPlan from "../components/BotonMejorarPlan";
+import ENV from "../../../config/env";
+
+import BottomNav from "../../../components/BottomNav";
+import BotonEscoger from "../../../components/BotonEscoger";
+import BotonCancelar from "../../../components/BotonCancelar";
+import BotonMejorarPlan from "../../../components/BotonMejorarPlan";
+import { styles } from "./styles";
 
 type RootStackParamList = {
   Login: undefined;
@@ -54,11 +56,11 @@ const ProfileScreen = () => {
   const userId = "45224151-7b09-45ff-835b-413062c2e815";
 
   useEffect(() => {
-    fetch(`http://10.0.2.2:8080/users/${userId}`)
+    console.log(`${ENV.USER_SERVICE}`);
+    fetch(`${ENV.USER_SERVICE}/users/${userId}`)
       .then((res) => res.json())
-      .then((data) => {
-        setUser(data);
-      })
+      .then((data) => setUser(data))
+      .then((data) => console.log(data))
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
@@ -71,7 +73,7 @@ const ProfileScreen = () => {
   const handleCancelSubscription = async () => {
     try {
       const response = await fetch(
-        `http://10.0.2.2:8080/users/${userId}/subscription`,
+        `${ENV.USER_SERVICE}/users/${userId}/subscription`,
         { method: "DELETE" }
       );
       if (!response.ok) throw new Error("Error al cancelar suscripción");
@@ -211,7 +213,6 @@ const ProfileScreen = () => {
             />
           </View>
 
-          {/* Botón actualizado de Ayuda y Soporte */}
           <TouchableOpacity
             style={styles.menuItem}
             onPress={() => navigation.navigate("Support")}
@@ -243,91 +244,5 @@ const ProfileScreen = () => {
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-  },
-  scrollContent: {
-    flexGrow: 1,
-    padding: 20,
-    paddingBottom: 80,
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginTop: 40,
-  },
-  headerTitle: { fontSize: 22, fontWeight: "700", color: "#1F2937" },
-  configButton: { padding: 8 },
-  userCard: {
-    backgroundColor: "#F3F4F6",
-    borderRadius: 12,
-    padding: 15,
-    marginTop: 20,
-  },
-  userInfo: { flexDirection: "row", alignItems: "center" },
-  profileImage: { width: 60, height: 60, borderRadius: 30 },
-  profileIcon: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: "#E5E7EB",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  userDetails: { marginLeft: 15 },
-  userName: { fontSize: 18, fontWeight: "600", color: "#111827" },
-  userEmail: { fontSize: 14, color: "#6B7280" },
-  section: { marginTop: 30 },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: "700",
-    marginBottom: 10,
-    color: "#374151",
-  },
-  paymentCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#F9FAFB",
-    padding: 12,
-    borderRadius: 10,
-    justifyContent: "space-between",
-  },
-  paymentText: { flex: 1, marginLeft: 10, color: "#1F2937", fontSize: 15 },
-  planCard: { backgroundColor: "#F9FAFB", padding: 15, borderRadius: 12 },
-  planHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  planName: { fontSize: 16, fontWeight: "700", color: "#111827" },
-  manageButton: { backgroundColor: "#E5E7EB", padding: 6, borderRadius: 6 },
-  manageButtonText: { color: "#374151", fontSize: 13 },
-  planPrice: { fontSize: 16, color: "#4B5563", marginTop: 5 },
-  planDetails: { fontSize: 14, color: "#6B7280", marginTop: 3 },
-  planActions: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: 10,
-  },
-  menuItem: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: "#E5E7EB",
-  },
-  menuItemLeft: { flexDirection: "row", alignItems: "center" },
-  menuItemText: { fontSize: 15, marginLeft: 10, color: "#374151" },
-  logoutItem: { marginTop: 10 },
-  logoutText: { color: "#EF4444" },
-  bottomSpacer: {
-    height: 30,
-  },
-});
 
 export default ProfileScreen;

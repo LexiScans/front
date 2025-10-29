@@ -11,10 +11,10 @@ import {
 import { WebView } from "react-native-webview";
 import { Svg, Path } from "react-native-svg";
 import { useNavigation } from "@react-navigation/native";
-import SignatureModal from "../../components/pdfView/SignatureModal";
-import ConfirmSignatureModal from "../../components/pdfView/ConfirmSignatureModal";
-import SuccessModal from "../../components/pdfView/SuccessModal";
-import WarningModal from "../../components/pdfView/WarningModal";
+import SignatureModal from "../components/ConfirmSignatureModal";
+import ConfirmSignatureModal from "../components/ConfirmSignatureModal";
+import SuccessModal from "../components/SuccessModal";
+import WarningModal from "../components/WarningModal";
 import { styles } from "./styles";
 
 const PdfViewerScreen: React.FC = () => {
@@ -81,11 +81,14 @@ const PdfViewerScreen: React.FC = () => {
         x: signaturePosition.x,
         y: signaturePosition.y,
       };
-      const response = await fetch("http://10.0.2.2:8083/contracts/sign", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+      const response = await fetch(
+        "https://485t7d4i73.execute-api.us-east-1.amazonaws.com/develop/contracts/sign",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        }
+      );
       const data = await response.json();
       setPdfUrl(data.signedUrl);
       setSuccessModalVisible(true);
@@ -136,7 +139,6 @@ const PdfViewerScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      {/* Visor del contrato PDF */}
       <View style={styles.webviewContainer}>
         {loading && (
           <View style={styles.loadingContainer}>
@@ -177,7 +179,6 @@ const PdfViewerScreen: React.FC = () => {
         )}
       </View>
 
-      {/* Sección inferior: solo firma */}
       <View style={styles.bottomSection}>
         <ScrollView
           ref={scrollViewRef}
@@ -186,7 +187,6 @@ const PdfViewerScreen: React.FC = () => {
           showsVerticalScrollIndicator={false}
           nestedScrollEnabled
         >
-          {/* Vista previa de la firma */}
           {signaturePaths.length > 0 && !placingSignature && (
             <View style={styles.signaturePreview}>
               <Text style={styles.previewTitle}>Vista previa de tu firma:</Text>
@@ -198,18 +198,17 @@ const PdfViewerScreen: React.FC = () => {
             </View>
           )}
 
-          {/* Botón principal de firma - CENTRADO AL 35% */}
           <View
             style={[
               styles.buttonsContainer,
-              { width: "35%", alignSelf: "center" },
+              { width: "40%", alignSelf: "center" },
             ]}
           >
             <TouchableOpacity
               style={[
                 styles.actionButton,
                 {
-                  backgroundColor: "#1E88E5",
+                  backgroundColor: "#115086ff",
                   borderRadius: 30,
                   paddingVertical: 14,
                   paddingHorizontal: 30,
@@ -226,7 +225,6 @@ const PdfViewerScreen: React.FC = () => {
             </TouchableOpacity>
           </View>
 
-          {/* Controles de colocación */}
           {placingSignature && (
             <View style={styles.placementControls}>
               <Text style={styles.placementText}>

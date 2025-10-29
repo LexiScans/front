@@ -9,10 +9,11 @@ import {
   Alert,
 } from "react-native";
 import { RadioButton } from "react-native-paper";
-import BottomNav from "../components/BottomNav";
-import PaymentCard from "../components/PaymentCard";
+import BottomNav from "../../../../components/BottomNav";
+import PaymentCard from "../../../../components/PaymentCard";
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
+import ENV from "../../../../config/env";
 
 const COLORS = ["#171717", "#1E3A8A", "#1fac84ff", "#dd3737ff"];
 const USER_ID = "45224151-7b09-45ff-835b-413062c2e815";
@@ -33,7 +34,7 @@ const PaymentMethodsScreen = () => {
   const fetchCards = async () => {
     try {
       const response = await fetch(
-        `http://10.0.2.2:8081/payment/methods/user/${USER_ID}`
+        `${ENV.PAYMENT_SERVICE}/payment/methods/user/${USER_ID}`
       );
       const data = await response.json();
 
@@ -70,7 +71,7 @@ const PaymentMethodsScreen = () => {
       };
 
       const response = await fetch(
-        `http://10.0.2.2:8081/payment/methods/default`,
+        `${ENV.PAYMENT_SERVICE}/payment/methods/default`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
@@ -93,7 +94,7 @@ const PaymentMethodsScreen = () => {
   const handleDelete = async (cardId: string) => {
     try {
       const response = await fetch(
-        `http://10.0.2.2:8081/payment/methods/${cardId}`,
+        `${ENV.PAYMENT_SERVICE}/payment/methods/${cardId}`,
         { method: "DELETE" }
       );
       if (!response.ok) throw new Error("Error al eliminar tarjeta");

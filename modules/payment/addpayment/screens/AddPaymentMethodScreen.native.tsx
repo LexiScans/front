@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { CardField, useConfirmSetupIntent } from "@stripe/stripe-react-native";
 import { Ionicons } from "@expo/vector-icons";
-
+import ENV from "../../../../config/env";
 const AddPaymentMethodScreen = ({ navigation }: any) => {
   const [cardDetails, setCardDetails] = useState<any>();
   const { confirmSetupIntent } = useConfirmSetupIntent();
@@ -23,7 +23,7 @@ const AddPaymentMethodScreen = ({ navigation }: any) => {
 
     try {
       const response = await fetch(
-        `http://10.0.2.2:8081/payment/create-setup-intent?customerId=cus_T94eOMGUfePnLl`,
+        `${ENV.PAYMENT_SERVICE}/payment/create-setup-intent?customerId=cus_T94eOMGUfePnLl`,
         { method: "POST" }
       );
 
@@ -56,7 +56,7 @@ const AddPaymentMethodScreen = ({ navigation }: any) => {
         };
 
         const addMethodResponse = await fetch(
-          "http://10.0.2.2:8081/payment/addMethod",
+          `${ENV.PAYMENT_SERVICE}/payment/addMethod`,
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -151,14 +151,14 @@ const styles = StyleSheet.create({
   scroll: {
     flexGrow: 1,
     padding: 20,
-    paddingBottom: 120, 
+    paddingBottom: 120,
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     marginBottom: 30,
-    marginTop: 50, 
+    marginTop: 50,
   },
   backButton: {
     padding: 8,
@@ -265,6 +265,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   bottomSpacer: {
-    height: 60, 
+    height: 60,
   },
 });

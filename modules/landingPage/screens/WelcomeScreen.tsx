@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, StyleSheet, Image, TouchableOpacity } from "react-native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { RootStackParamList } from "../navigation/RootNavigator";
+import { RootStackParamList } from "../../../app/navigation/RootNavigator";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Welcome">;
 
@@ -10,7 +10,7 @@ const WelcomeScreen: React.FC<Props> = ({ navigation }) => {
     <View style={styles.container}>
       <View style={styles.content}>
         <Image
-          source={require("../assets/logoSinFondo.png")}
+          source={require("../../../assets/logoSinFondo.png")}
           style={styles.logo}
           resizeMode="contain"
         />

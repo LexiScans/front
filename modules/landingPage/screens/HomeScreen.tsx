@@ -10,9 +10,9 @@ import {
   Platform,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import BottomNav from "../components/BottomNav";
-import UploadModal from "../components/UploadModal";
-import ContractCard from "../components/ContractCard";
+import BottomNav from "../../../components/BottomNav";
+import UploadModal from "../../../components/UploadModal";
+import ContractCard from "../../../components/ContractCard";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 

@@ -91,7 +91,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 20,
-    paddingTop: 60, // baja la vista para que no choque con la cámara
+    paddingTop: 60, 
     paddingBottom: 80,
   },
   header: {
