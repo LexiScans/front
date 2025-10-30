@@ -13,8 +13,8 @@ import { Svg, Path } from "react-native-svg";
 import { useNavigation } from "@react-navigation/native";
 import SignatureModal from "../components/ConfirmSignatureModal";
 import ConfirmSignatureModal from "../components/ConfirmSignatureModal";
-import SuccessModal from "../components/SuccessModal";
-import WarningModal from "../components/WarningModal";
+import SuccessModal from "../../../components/SuccessModal";
+import WarningModal from "../../../components/WarningModal";
 import { styles } from "./styles";
 
 const PdfViewerScreen: React.FC = () => {

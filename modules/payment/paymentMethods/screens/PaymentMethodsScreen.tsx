@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
+
 import {
   View,
   Text,
@@ -6,14 +7,16 @@ import {
   SafeAreaView,
   ScrollView,
   TouchableOpacity,
-  Alert,
 } from "react-native";
 import { RadioButton } from "react-native-paper";
 import BottomNav from "../../../../components/BottomNav";
-import PaymentCard from "../../../../components/PaymentCard";
-import { useNavigation } from "@react-navigation/native";
+import PaymentCard from "../../buypayment/components/PaymentCard";
+import { useNavigation, useFocusEffect } from "@react-navigation/native"; 
+
 import { Ionicons } from "@expo/vector-icons";
 import ENV from "../../../../config/env";
+import SuccessModal from "../../../../components/SuccessModal";
+import WarningModal from "../../../../components/WarningModal";
 
 const COLORS = ["#171717", "#1E3A8A", "#1fac84ff", "#dd3737ff"];
 const USER_ID = "45224151-7b09-45ff-835b-413062c2e815";
@@ -30,6 +33,22 @@ const PaymentMethodsScreen = () => {
   >([]);
   const [selectedCard, setSelectedCard] = useState<string | null>(null);
   const navigation = useNavigation();
+  const [successVisible, setSuccessVisible] = useState(false);
+  const [warningVisible, setWarningVisible] = useState(false);
+  const [modalTitle, setModalTitle] = useState("");
+  const [modalMessage, setModalMessage] = useState("");
+
+  const showSuccess = (title: string, message: string) => {
+    setModalTitle(title);
+    setModalMessage(message);
+    setSuccessVisible(true);
+  };
+
+  const showWarning = (title: string, message: string) => {
+    setModalTitle(title);
+    setModalMessage(message);
+    setWarningVisible(true);
+  };
 
   const fetchCards = async () => {
     try {
@@ -50,25 +69,30 @@ const PaymentMethodsScreen = () => {
       if (cardsWithColor.length > 0) setSelectedCard(cardsWithColor[0].id);
     } catch (err) {
       console.error("Error al obtener tarjetas:", err);
+      showWarning("Error", "No se pudieron obtener las tarjetas.");
     }
   };
 
-  useEffect(() => {
+ useFocusEffect(
+  useCallback(() => {
     fetchCards();
-  }, []);
+  }, [])
+);
 
   const handleSelect = async () => {
     if (!selectedCard) {
-      Alert.alert("Error", "No hay tarjeta seleccionada.");
+      showWarning("Error", "No hay tarjeta seleccionada.");
       return;
     }
 
     try {
       const changeMethod = {
         userId: USER_ID,
-        customerId: "cus_T7zEmo7WbyrmZW",
+        customerId: "cus_T94eOMGUfePnLl",
         id: selectedCard,
       };
+
+      console.log(selectedCard);
 
       const response = await fetch(
         `${ENV.PAYMENT_SERVICE}/payment/methods/default`,
@@ -80,10 +104,10 @@ const PaymentMethodsScreen = () => {
       );
 
       if (!response.ok) throw new Error("Error al cambiar método de pago");
-      Alert.alert("Éxito", "Método de pago actualizado");
+      showSuccess("Éxito", "Método de pago actualizado correctamente.");
       fetchCards();
     } catch (err: any) {
-      Alert.alert("Error", err.message);
+      showWarning("Error", err.message);
     }
   };
 
@@ -98,10 +122,10 @@ const PaymentMethodsScreen = () => {
         { method: "DELETE" }
       );
       if (!response.ok) throw new Error("Error al eliminar tarjeta");
-      Alert.alert("Éxito", "Método de pago eliminado");
+      showSuccess("Éxito", "Método de pago eliminado correctamente.");
       fetchCards();
     } catch (err: any) {
-      Alert.alert("Error", err.message);
+      showWarning("Error", err.message);
     }
   };
 
@@ -159,6 +183,21 @@ const PaymentMethodsScreen = () => {
           <Text style={styles.addText}>Agregar nuevo método de pago</Text>
         </TouchableOpacity>
       </ScrollView>
+
+      {/* Modales */}
+      <SuccessModal
+        visible={successVisible}
+        onClose={() => setSuccessVisible(false)}
+        title={modalTitle}
+        message={modalMessage}
+      />
+
+      <WarningModal
+        visible={warningVisible}
+        onClose={() => setWarningVisible(false)}
+        title={modalTitle}
+        message={modalMessage}
+      />
 
       <BottomNav onPressCentral={() => {}} />
     </SafeAreaView>

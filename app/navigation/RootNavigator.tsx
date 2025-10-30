@@ -7,7 +7,7 @@ import ProfileScreen from "../../modules/profile/screens/ProfileScreen";
 import WelcomeScreen from "../../modules/landingPage/screens/WelcomeScreen";
 import PaymentMethodScreen from "../../modules/payment/paymentMethods/screens/PaymentMethodsScreen";
 import AddPaymentMethodScreen from "../../modules/payment/addpayment/screens/AddPaymentMethodScreen.native";
-import PrevisualizacionContrato from "../../modules/uploadContract/screens/PrevisualizacionContrato";
+import PrevisualizacionContrato from "../../modules/uploadContract/screens/ContractPreview";
 import BuySubscriptionScreen from "../../modules/payment/buypayment/screens/BuySubscriptionScreen";
 import PaymentToBuyScreen from "../../modules/payment/buypayment/screens/PaymentToBuyScreen";
 import PdfViewerScreen from "../../modules/pdf/screen/PdfViewerScreen";
@@ -17,7 +17,7 @@ import TermsAndConditionsScreen from "../../modules/settings/screens/TermsAndCon
 import EditProfileScreen from "../../modules/settings/screens/EditProfileScreen";
 import PrivacyPolicyScreen from "../../modules/settings/screens/PrivacyPolicyScreen";
 import SupportScreen from "../../modules/settings/screens/SupportScreen";
-import DetallesContrato from "../../modules/uploadContract/screens/DetallesContrato";
+import DetallesContrato from "../../modules/uploadContract/screens/contractDetails";
 import UploadSuccess from "../../modules/uploadContract/screens/UploadSuccess";
 
 type RootStackParamList = {

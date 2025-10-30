@@ -6,14 +6,16 @@ import {
   SafeAreaView,
   ScrollView,
   TouchableOpacity,
-  Alert,
 } from "react-native";
 import { RadioButton } from "react-native-paper";
 import BottomNav from "../../../../components/BottomNav";
-import PaymentCard from "../../../../components/PaymentCard";
+import PaymentCard from "../components/PaymentCard";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import ENV from "../../../../config/env";
+import SuccessModal from "../../../../components/SuccessModal";
+import WarningModal from "../../../../components/WarningModal";
+
 const COLORS = ["#171717", "#1E3A8A", "#1fac84ff", "#dd3737ff"];
 const USER_ID = "45224151-7b09-45ff-835b-413062c2e815";
 
@@ -28,6 +30,11 @@ const PaymentToBuyScreen = () => {
     }[]
   >([]);
   const [selectedCard, setSelectedCard] = useState<string | null>(null);
+
+  const [successVisible, setSuccessVisible] = useState(false);
+  const [warningVisible, setWarningVisible] = useState(false);
+  const [modalTitle, setModalTitle] = useState("");
+  const [modalMessage, setModalMessage] = useState("");
 
   const route = useRoute();
   const { plan } = route.params as { plan: string };
@@ -72,6 +79,9 @@ const PaymentToBuyScreen = () => {
       if (cardsWithColor.length > 0) setSelectedCard(cardsWithColor[0].id);
     } catch (err) {
       console.error("Error al obtener tarjetas:", err);
+      setModalTitle("Error");
+      setModalMessage("No se pudieron cargar las tarjetas.");
+      setWarningVisible(true);
     }
   };
 
@@ -92,23 +102,26 @@ const PaymentToBuyScreen = () => {
         body: JSON.stringify(nuevaSuscripcion),
       });
 
+      const data = await response.json().catch(() => ({}));
+
       if (!response.ok) {
-        throw new Error("Error al crear la suscripción");
+        const backendError =
+          data?.message ||
+          data?.error ||
+          "Error al crear la suscripción. No tienes metodos de pago";
+        throw new Error(backendError);
       }
 
-      const data = await response.json();
-      Alert.alert(
-        "Éxito",
-        `Suscripción ${getPlanDisplayName(plan)} activada correctamente`,
-        [
-          {
-            text: "OK",
-            onPress: () => navigation.goBack(),
-          },
-        ]
+      setModalTitle("Éxito");
+      setModalMessage(
+        `Suscripción ${getPlanDisplayName(plan)} activada correctamente.`
       );
+      setSuccessVisible(true);
     } catch (err: any) {
-      Alert.alert("Error", err.message);
+   
+      setModalTitle("Error");
+      setModalMessage(err.message || "Error desconocido al crear suscripción.");
+      setWarningVisible(true);
     }
   };
 
@@ -173,6 +186,23 @@ const PaymentToBuyScreen = () => {
       </ScrollView>
 
       <BottomNav onPressCentral={() => {}} />
+
+      <SuccessModal
+        visible={successVisible}
+        onClose={() => {
+          setSuccessVisible(false);
+          navigation.goBack();
+        }}
+        title={modalTitle}
+        message={modalMessage}
+      />
+
+      <WarningModal
+        visible={warningVisible}
+        onClose={() => setWarningVisible(false)}
+        title={modalTitle}
+        message={modalMessage}
+      />
     </SafeAreaView>
   );
 };

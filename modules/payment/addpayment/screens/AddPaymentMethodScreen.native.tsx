@@ -5,19 +5,36 @@ import {
   StyleSheet,
   SafeAreaView,
   TouchableOpacity,
-  Alert,
   ScrollView,
 } from "react-native";
 import { CardField, useConfirmSetupIntent } from "@stripe/stripe-react-native";
 import { Ionicons } from "@expo/vector-icons";
 import ENV from "../../../../config/env";
+import SuccessModal from "../../../../components/SuccessModal";
+import WarningModal from "../../../../components/WarningModal";
+
 const AddPaymentMethodScreen = ({ navigation }: any) => {
   const [cardDetails, setCardDetails] = useState<any>();
   const { confirmSetupIntent } = useConfirmSetupIntent();
 
+  // Estados para modales
+  const [successVisible, setSuccessVisible] = useState(false);
+  const [warningVisible, setWarningVisible] = useState(false);
+  const [modalMessage, setModalMessage] = useState("");
+
+  const showSuccess = (message: string) => {
+    setModalMessage(message);
+    setSuccessVisible(true);
+  };
+
+  const showWarning = (message: string) => {
+    setModalMessage(message);
+    setWarningVisible(true);
+  };
+
   const handleAddCard = async () => {
     if (!cardDetails?.complete) {
-      Alert.alert("Error", "Por favor completa los datos de la tarjeta.");
+      showWarning("Por favor completa los datos de la tarjeta.");
       return;
     }
 
@@ -40,14 +57,11 @@ const AddPaymentMethodScreen = ({ navigation }: any) => {
       );
 
       if (error) {
-        Alert.alert("Error", error.message);
+        showWarning(error.message);
         return;
       }
 
       if (setupIntent) {
-        Alert.alert("Éxito", "Tarjeta guardada correctamente.");
-        console.log("PaymentMethod ID:", setupIntent.paymentMethodId);
-
         const addMethodBody = {
           userId: "45224151-7b09-45ff-835b-413062c2e815",
           customerId: "cus_T94eOMGUfePnLl",
@@ -69,10 +83,10 @@ const AddPaymentMethodScreen = ({ navigation }: any) => {
           throw new Error(errData.message || "Error al agregar método de pago");
         }
 
-        navigation.goBack();
+        showSuccess("Tarjeta guardada correctamente.");
       }
     } catch (err: any) {
-      Alert.alert("Error", err.message);
+      showWarning(err.message);
     }
   };
 
@@ -137,6 +151,22 @@ const AddPaymentMethodScreen = ({ navigation }: any) => {
 
         <View style={styles.bottomSpacer} />
       </ScrollView>
+
+      {/* Modales de Éxito y Advertencia */}
+      <SuccessModal
+        visible={successVisible}
+        onClose={() => {
+          setSuccessVisible(false);
+          navigation.goBack();
+        }}
+        message={modalMessage}
+      />
+
+      <WarningModal
+        visible={warningVisible}
+        onClose={() => setWarningVisible(false)}
+        message={modalMessage}
+      />
     </SafeAreaView>
   );
 };
