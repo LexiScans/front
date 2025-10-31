@@ -28,41 +28,43 @@ const ConfirmSignatureModal: React.FC<ConfirmSignatureModalProps> = ({
       animationType="fade"
       onRequestClose={onClose}
     >
-      <View style={styles.overlay}>
-        <View style={styles.content}>
+      <View style={materialStyles.overlay}>
+        <View style={materialStyles.content}>
           {isLoading ? (
-            <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color="#007AFF" />
-              <Text style={styles.loadingText}>Firmando documento...</Text>
-              <Text style={styles.subText}>Por favor espera</Text>
+            <View style={materialStyles.loadingContainer}>
+              <ActivityIndicator size="large" color="#0b2e42ff" />
+              <Text style={materialStyles.loadingText}>
+                Firmando documento...
+              </Text>
+              <Text style={materialStyles.subText}>Por favor espera</Text>
             </View>
           ) : (
             <>
-              <View style={styles.header}>
-                <Text style={styles.title}>¿Confirmar firma?</Text>
+              <View style={materialStyles.header}>
+                <Text style={materialStyles.title}>¿Confirmar firma?</Text>
               </View>
 
-              <View style={styles.body}>
-                <Text style={styles.message}>
+              <View style={materialStyles.body}>
+                <Text style={materialStyles.message}>
                   ¿Estás seguro de que deseas firmar el documento? Esta acción
                   no se puede deshacer.
                 </Text>
               </View>
 
-              <View style={styles.footer}>
+              <View style={materialStyles.footer}>
                 <TouchableOpacity
-                  style={[styles.button, styles.cancelButton]}
+                  style={[materialStyles.button, materialStyles.cancelButton]}
                   onPress={onClose}
                   disabled={isLoading}
                 >
-                  <Text style={styles.cancelText}>Cancelar</Text>
+                  <Text style={materialStyles.cancelText}>Cancelar</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  style={[styles.button, styles.confirmButton]}
+                  style={[materialStyles.button, materialStyles.confirmButton]}
                   onPress={onConfirm}
                   disabled={isLoading}
                 >
-                  <Text style={styles.confirmText}>Sí, Firmar</Text>
+                  <Text style={materialStyles.confirmText}>Sí, Firmar</Text>
                 </TouchableOpacity>
               </View>
             </>
@@ -73,43 +75,42 @@ const ConfirmSignatureModal: React.FC<ConfirmSignatureModalProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+export default ConfirmSignatureModal;
+
+const materialStyles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    backgroundColor: "rgba(0,0,0,0.5)",
     justifyContent: "center",
     alignItems: "center",
-    padding: 20,
+    paddingHorizontal: 20,
   },
   content: {
     width: "100%",
     backgroundColor: "#fff",
-    borderRadius: 12,
-    padding: 20,
+    borderRadius: 16,
+    padding: 24,
+    elevation: 6,
     shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
   },
   header: {
     alignItems: "center",
     marginBottom: 16,
   },
   title: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#333",
+    fontSize: 22,
+    fontWeight: "700",
+    color: "#111827",
   },
   body: {
-    marginBottom: 20,
+    marginBottom: 24,
   },
   message: {
     fontSize: 16,
-    color: "#666",
+    color: "#4B5563",
     textAlign: "center",
     lineHeight: 22,
   },
@@ -120,21 +121,21 @@ const styles = StyleSheet.create({
   },
   button: {
     flex: 1,
-    paddingVertical: 12,
+    paddingVertical: 14,
     borderRadius: 8,
     alignItems: "center",
     justifyContent: "center",
   },
   cancelButton: {
-    backgroundColor: "#f8f9fa",
+    backgroundColor: "#F3F4F6",
     borderWidth: 1,
-    borderColor: "#dee2e6",
+    borderColor: "#D1D5DB",
   },
   confirmButton: {
-    backgroundColor: "#007AFF",
+    backgroundColor: "#0b2e42ff",
   },
   cancelText: {
-    color: "#333",
+    color: "#111827",
     fontSize: 16,
     fontWeight: "600",
   },
@@ -145,19 +146,17 @@ const styles = StyleSheet.create({
   },
   loadingContainer: {
     alignItems: "center",
-    padding: 20,
+    paddingVertical: 24,
   },
   loadingText: {
     marginTop: 16,
     fontSize: 18,
     fontWeight: "600",
-    color: "#333",
+    color: "#111827",
   },
   subText: {
     marginTop: 8,
     fontSize: 14,
-    color: "#666",
+    color: "#6B7280",
   },
 });
-
-export default ConfirmSignatureModal;

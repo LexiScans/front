@@ -29,23 +29,22 @@ const SignatureModal: React.FC<SignatureModalProps> = ({
   }, [visible]);
 
   const handleConfirm = async () => {
-  if (signatureRef.current) {
-    try {
-      const base64 = await captureRef(signatureRef.current, {
-        format: "png",      
-        quality: 1,
-        result: "base64",
-        width: 80,
-        height: 50,
-      });
-      onSignatureBase64(base64);
-    } catch (error) {
-      console.log("Error capturando la firma:", error);
+    if (signatureRef.current) {
+      try {
+        const base64 = await captureRef(signatureRef.current, {
+          format: "png",
+          quality: 1,
+          result: "base64",
+          width: 80,
+          height: 50,
+        });
+        onSignatureBase64(base64);
+      } catch (error) {
+        console.log("Error capturando la firma:", error);
+      }
     }
-  }
-  onConfirm();
-};
-
+    onConfirm();
+  };
 
   return (
     <Modal

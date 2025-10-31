@@ -73,15 +73,19 @@ const SignatureCanvas: React.FC<SignatureCanvasProps> = ({
   }, [paths]);
 
   return (
-    <View style={styles.canvasContainer}>
-      <View style={styles.canvas} {...panResponder.panHandlers} ref={svgRef}>
+    <View style={materialStyles.canvasContainer}>
+      <View
+        style={materialStyles.canvasCard}
+        {...panResponder.panHandlers}
+        ref={svgRef}
+      >
         <Svg width="100%" height="100%">
           {paths.map((p, i) => (
             <Path
               key={i}
               d={pointsToSvgPath(p)}
-              stroke="#111"
-              strokeWidth={2.5}
+              stroke="#0b2e42ff"
+              strokeWidth={3}
               fill="none"
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -90,8 +94,8 @@ const SignatureCanvas: React.FC<SignatureCanvasProps> = ({
           {currentPath.length > 0 && (
             <Path
               d={pointsToSvgPath(currentPath)}
-              stroke="#111"
-              strokeWidth={2.5}
+              stroke="#0b2e42ff"
+              strokeWidth={3}
               fill="none"
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -99,35 +103,49 @@ const SignatureCanvas: React.FC<SignatureCanvasProps> = ({
           )}
         </Svg>
       </View>
-      <TouchableOpacity style={styles.clearButton} onPress={clearCanvas}>
-        <Text style={styles.clearButtonText}>🧹 Limpiar</Text>
+
+      <TouchableOpacity
+        style={materialStyles.clearButton}
+        onPress={clearCanvas}
+      >
+        <Text style={materialStyles.clearButtonText}>🧹 Limpiar</Text>
       </TouchableOpacity>
     </View>
   );
 };
 
-const styles = StyleSheet.create({
+export default SignatureCanvas;
+
+const materialStyles = StyleSheet.create({
   canvasContainer: {
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 10,
+    marginVertical: 16,
   },
-  canvas: {
-    width: 300,
-    height: 300,
+  canvasCard: {
+    width: 320,
+    height: 320,
     backgroundColor: "#fff",
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 8,
+    borderRadius: 16,
+    elevation: 4,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    borderWidth: 0.5,
+    borderColor: "#E5E7EB",
   },
   clearButton: {
-    marginTop: 8,
-    backgroundColor: "#FF6B6B",
-    paddingVertical: 8,
-    paddingHorizontal: 20,
+    marginTop: 12,
+    backgroundColor: "#0b2e42ff",
+    paddingVertical: 12,
+    paddingHorizontal: 28,
     borderRadius: 8,
+    elevation: 2,
   },
-  clearButtonText: { color: "#fff", fontWeight: "600" },
+  clearButtonText: {
+    color: "#fff",
+    fontWeight: "600",
+    fontSize: 16,
+  },
 });
-
-export default SignatureCanvas;

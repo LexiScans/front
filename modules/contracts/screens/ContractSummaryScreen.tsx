@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -6,25 +6,35 @@ import {
   StyleSheet,
   ScrollView,
   Dimensions,
+  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
+  Alert,
 } from "react-native";
 import ProgressBar from "react-native-progress/Bar";
 import { Ionicons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import ChatAssistantModal from "../../../components/ChatAssistantModal";
+import ENV from "../../../config/env";
 
 const { width } = Dimensions.get("window");
 
 const ContractSummaryScreen = () => {
   const navigation = useNavigation();
+  const route = useRoute();
+  const { contractId } = route.params as { contractId: string };
+
   const [expandedSections, setExpandedSections] = useState({
     explicacion: true,
     beneficios: false,
     clausulas: false,
     riesgos: false,
   });
+
   const [chatVisible, setChatVisible] = useState(false);
+  const [contractData, setContractData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const toggleSection = (section: string) => {
     setExpandedSections((prev) => ({
@@ -32,6 +42,73 @@ const ContractSummaryScreen = () => {
       [section]: !prev[section],
     }));
   };
+
+  const handlePdfNavigation = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(
+        `${ENV.PDF_SERVICE}/contracts/${contractId}/signed-url`,
+        {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+      if (!response.ok) throw new Error("Error al obtener el contrato");
+      const data = await response.json();
+      const url = data.signedUrl;
+    
+      if (url) {
+        navigation.navigate("PdfViewer", { pdfUrl: url });
+      } 
+    } catch (err: any) {
+      console.error(err);
+      Alert.alert("Error", "No se pudo cargar el PDF del contrato");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const fetchContractSummary = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch(
+          `${ENV.PDF_SERVICE}/implications/contract/${contractId}`,
+          {
+            method: "GET",
+            headers: { "Content-Type": "application/json" },
+          }
+        );
+        if (!response.ok) throw new Error("Error al obtener el contrato");
+        const data = await response.json();
+        setContractData(data);
+      } catch (err: any) {
+        console.error(err);
+        setError("No se pudo cargar el resumen del contrato");
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (contractId) fetchContractSummary();
+  }, [contractId]);
+
+  if (loading) {
+    return (
+      <View style={styles.centered}>
+        <ActivityIndicator size="large" color="#1E88E5" />
+        <Text style={{ marginTop: 10, color: "#1E88E5" }}>Cargando...</Text>
+      </View>
+    );
+  }
+
+  if (error || !contractData) {
+    return (
+      <View style={styles.centered}>
+        <Ionicons name="alert-circle" size={40} color="#F44336" />
+        <Text style={{ color: "#F44336", marginTop: 10 }}>{error}</Text>
+      </View>
+    );
+  }
 
   return (
     <KeyboardAvoidingView
@@ -54,9 +131,8 @@ const ContractSummaryScreen = () => {
           </View>
 
           <View style={styles.card}>
-            <Text style={styles.subtitle}>
-              Contrato de Prestación de Servicios
-            </Text>
+            <Text style={styles.subtitle}>{contractData.title}</Text>
+
             <View style={styles.progressContainer}>
               <ProgressBar
                 progress={0.85}
@@ -66,8 +142,12 @@ const ContractSummaryScreen = () => {
                 height={8}
               />
               <View style={styles.progressLabels}>
-                <Text style={styles.riskText}>Riesgo Bajo</Text>
-                <Text style={styles.legibilityText}>Legibilidad: 85/100</Text>
+                <Text style={styles.riskText}>
+                  Riesgo {contractData.riskLevel}
+                </Text>
+                <Text style={styles.legibilityText}>
+                  Legibilidad: {contractData.readabilityLevel}
+                </Text>
               </View>
             </View>
           </View>
@@ -78,41 +158,28 @@ const ContractSummaryScreen = () => {
               title: "Explicación General",
               color: "#1E88E5",
               icon: "analytics",
-              content:
-                "Este contrato tiene condiciones equilibradas y de riesgo bajo. Se recomienda atención a cláusulas de propiedad intelectual y confidencialidad.",
+              content: contractData.explanation,
             },
             {
               key: "beneficios",
               title: "Beneficios",
               color: "#4CAF50",
               icon: "checkmark-circle",
-              content: [
-                "Pago mensual fijo garantizado según entregables definidos.",
-                "Flexibilidad en horarios y métodos de trabajo.",
-                "Propiedad intelectual compartida entre ambas partes.",
-              ],
+              content: contractData.benefits,
             },
             {
               key: "clausulas",
               title: "Cláusulas Importantes",
               color: "#1E88E5",
               icon: "document-text",
-              content: [
-                "Confidencialidad: ninguna información del cliente podrá ser divulgada.",
-                "Terminación: requiere aviso con 30 días de antelación.",
-                "Propiedad intelectual: el código fuente entregado será propiedad del cliente.",
-              ],
+              content: contractData.clauses,
             },
             {
               key: "riesgos",
               title: "Riesgos Potenciales",
               color: "#F44336",
               icon: "warning",
-              content: [
-                "Retrasos de pago si los informes no se entregan a tiempo.",
-                "Falta de claridad en entregables podría generar malentendidos.",
-                "Dependencia alta de la disponibilidad del contratista.",
-              ],
+              content: contractData.risks,
             },
           ].map((section) => (
             <View key={section.key} style={styles.section}>
@@ -142,7 +209,12 @@ const ContractSummaryScreen = () => {
                           size={22}
                           color={section.color}
                         />
-                        <Text style={styles.cardItemText}>{item}</Text>
+                        <View style={{ flex: 1 }}>
+                          <Text style={styles.cardItemTitle}>{item.title}</Text>
+                          <Text style={styles.cardItemText}>
+                            {item.explanation}
+                          </Text>
+                        </View>
                       </View>
                     ))
                   ) : (
@@ -166,7 +238,7 @@ const ContractSummaryScreen = () => {
         <View style={styles.footer}>
           <TouchableOpacity
             style={[styles.footerButton, { backgroundColor: "#1E88E5" }]}
-            onPress={() => navigation.navigate("PdfViewer")}
+            onPress={() => handlePdfNavigation()}
           >
             <Ionicons name="document-text" size={20} color="#fff" />
             <Text style={styles.footerButtonText}>Proceso de Firma</Text>
@@ -191,28 +263,11 @@ const ContractSummaryScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#F9FAFB",
-  },
-  scrollContent: {
-    paddingHorizontal: 20,
-    paddingTop: 60,
-    paddingBottom: 160,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 24,
-  },
-  backButton: {
-    marginRight: 12,
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: "700",
-    color: "#1E293B",
-  },
+  container: { flex: 1, backgroundColor: "#F9FAFB" },
+  scrollContent: { paddingHorizontal: 20, paddingTop: 60, paddingBottom: 160 },
+  header: { flexDirection: "row", alignItems: "center", marginBottom: 24 },
+  backButton: { marginRight: 12 },
+  title: { fontSize: 22, fontWeight: "700", color: "#1E293B" },
   card: {
     backgroundColor: "#FFFFFF",
     borderRadius: 16,
@@ -223,29 +278,16 @@ const styles = StyleSheet.create({
     elevation: 6,
     marginBottom: 20,
   },
-  subtitle: {
-    fontSize: 16,
-    color: "#64748B",
-    marginBottom: 10,
-  },
-  progressContainer: {
-    marginTop: 8,
-  },
+  subtitle: { fontSize: 16, color: "#64748B", marginBottom: 10 },
+  progressContainer: { marginTop: 8 },
   progressLabels: {
     flexDirection: "row",
     justifyContent: "space-between",
     marginTop: 8,
   },
-  riskText: {
-    color: "#4CAF50",
-    fontWeight: "600",
-  },
-  legibilityText: {
-    color: "#6B7280",
-  },
-  section: {
-    marginBottom: 18,
-  },
+  riskText: { color: "#4CAF50", fontWeight: "600" },
+  legibilityText: { color: "#6B7280" },
+  section: { marginBottom: 18 },
   sectionHeader: {
     backgroundColor: "#FFFFFF",
     borderRadius: 12,
@@ -258,11 +300,7 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 3,
   },
-  sectionTitle: {
-    fontSize: 17,
-    fontWeight: "600",
-    color: "#1E293B",
-  },
+  sectionTitle: { fontSize: 17, fontWeight: "600", color: "#1E293B" },
   sectionContent: {
     marginTop: 10,
     backgroundColor: "#FFFFFF",
@@ -279,12 +317,13 @@ const styles = StyleSheet.create({
     gap: 10,
     marginBottom: 10,
   },
-  cardItemText: {
-    flex: 1,
+  cardItemTitle: {
+    fontWeight: "600",
     fontSize: 15,
-    color: "#475569",
-    lineHeight: 22,
+    color: "#1E293B",
+    marginBottom: 2,
   },
+  cardItemText: { flex: 1, fontSize: 14, color: "#475569", lineHeight: 20 },
   footer: {
     position: "absolute",
     bottom: 30,
@@ -293,7 +332,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-around",
     alignItems: "center",
-    backgroundColor: "transparent",
   },
   footerButton: {
     flexDirection: "row",
@@ -307,6 +345,12 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontWeight: "700",
     fontSize: 16,
+  },
+  centered: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#F9FAFB",
   },
 });
 

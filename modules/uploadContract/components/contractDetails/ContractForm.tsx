@@ -1,13 +1,27 @@
-import React from "react";
-import { View, Text, TextInput, TouchableOpacity } from "react-native";
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  ActivityIndicator,
+} from "react-native";
 import RNPickerSelect from "react-native-picker-select";
 import { styles, pickerSelectStyles } from "../../styles/contractDetails";
 import { ContractPartes } from "./ContractPartes";
 import { ContractDatePicker } from "./ContractDatePicker";
 import { useNavigation } from "@react-navigation/native";
 import { useContractForm } from "../../hooks/contractDetails/useContractForm";
+import ENV from "../../../../config/env";
+import SuccessModal from "../../../../components/SuccessModal";
+import WarningModal from "../../../../components/WarningModal";
 
-export const ContractForm = () => {
+type ContractFormProps = {
+  fileUri?: string;
+  fileName?: string;
+};
+
+export const ContractForm = ({ fileUri, fileName }: ContractFormProps) => {
   const navigation = useNavigation();
   const {
     titulo,
@@ -30,6 +44,60 @@ export const ContractForm = () => {
     tiposContrato,
     formatearFecha,
   } = useContractForm();
+
+  const [loading, setLoading] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showWarningModal, setShowWarningModal] = useState(false);
+  const [warningMessage, setWarningMessage] = useState("");
+  const [contractId, setContractId] = useState<string | null>(null); 
+
+  const uploadContract = async () => {
+    if (!fileUri || !fileName) {
+      setWarningMessage("Debes seleccionar un archivo primero.");
+      setShowWarningModal(true);
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const formData = new FormData();
+      formData.append("file", {
+        uri: fileUri,
+        name: fileName,
+        type: "application/pdf",
+      } as any);
+      formData.append("userId", "45224151-7b09-45ff-835b-413062c2e815");
+      formData.append("type", tipo || "SERVICIOS");
+
+      const response = await fetch(`${ENV.PDF_SERVICE}/contracts/upload`, {
+        method: "POST",
+        headers: { "Content-Type": "multipart/form-data" },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        setWarningMessage("Error al subir el contrato");
+        setShowWarningModal(true);
+        return;
+      }
+
+      const data = await response.json();
+      console.log("Contrato subido:", data);
+
+      if (data?.id) {
+        setContractId(data.id);
+      }
+
+      setShowSuccessModal(true);
+    } catch (error: any) {
+      console.error(error);
+      setWarningMessage(error.message || "Error al subir el contrato");
+      setShowWarningModal(true);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <View>
@@ -87,14 +155,40 @@ export const ContractForm = () => {
 
       <TouchableOpacity
         style={styles.nextBtn}
-        onPress={() => navigation.navigate("PrevisualizacionContrato" as never)}
+        onPress={uploadContract}
+        disabled={loading}
       >
-        <Text style={styles.nextText}>Siguiente: Subir Archivo</Text>
+        {loading ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <Text style={styles.nextText}>Siguiente: Subir Archivo</Text>
+        )}
       </TouchableOpacity>
 
       <TouchableOpacity onPress={() => navigation.navigate("Home" as never)}>
         <Text style={styles.cancelText}>Cancelar</Text>
       </TouchableOpacity>
+
+      <SuccessModal
+        visible={showSuccessModal}
+        onClose={() => {
+          setShowSuccessModal(false);
+          if (contractId) {
+            navigation.navigate(
+              "PrevisualizacionContrato" as never,
+              { id: contractId } as never
+            );
+          } else {
+            navigation.navigate("PrevisualizacionContrato" as never);
+          }
+        }}
+      />
+
+      <WarningModal
+        visible={showWarningModal}
+        onClose={() => setShowWarningModal(false)}
+        message={warningMessage}
+      />
     </View>
   );
 };

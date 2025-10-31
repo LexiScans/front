@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -8,6 +8,8 @@ import {
   StatusBar,
   TouchableOpacity,
   Platform,
+  ActivityIndicator,
+  Alert,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import BottomNav from "../../../components/BottomNav";
@@ -15,40 +17,50 @@ import UploadModal from "../components/UploadModal";
 import ContractCard from "../components/ContractCard";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import ENV from "../../../config/env";
 
 type RootStackParamList = {
   Home: undefined;
-  ContractSummary: undefined;
+  ContractSummary: { id: string };
 };
 
-const dummyContracts = [
-  {
-    id: "1",
-    title: "Contrato de Arrendamiento - Abril",
-    type: "Arrendamiento",
-    status: "Pendiente",
-  },
-  {
-    id: "2",
-    title: "Contrato Laboral - Empresa X",
-    type: "Prestación de Servicios",
-    status: "Analizado",
-  },
-  {
-    id: "3",
-    title: "Acuerdo de Confidencialidad",
-    type: "Confidencialidad",
-    status: "Firmado",
-  },
-];
+type Contract = {
+  id: string;
+  name: string;
+  url: string;
+  type: string;
+  state: string;
+};
 
 export default function HomeScreen() {
   const [modalVisible, setModalVisible] = useState(false);
+  const [contracts, setContracts] = useState<Contract[]>([]);
+  const [loading, setLoading] = useState(true);
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const userId = "45224151-7b09-45ff-835b-413062c2e815";
 
-  const openPdfViewer = () => {
-    navigation.navigate("ContractSummary");
+  const fetchContracts = async () => {
+    try {
+      const response = await fetch(
+        `${ENV.PDF_SERVICE}/contracts/user/${userId}`
+      );
+      if (!response.ok) throw new Error("Error al obtener contratos");
+      const data: Contract[] = await response.json();
+      setContracts(data);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchContracts();
+  }, []);
+
+  const openPdfViewer = (contractId: string) => {
+    navigation.navigate("ContractSummary", { contractId });
   };
 
   return (
@@ -58,7 +70,6 @@ export default function HomeScreen() {
     >
       <SafeAreaView style={styles.container}>
         <StatusBar barStyle="dark-content" backgroundColor="#f8fbff" />
-
         <View style={styles.header}>
           <Text style={styles.hi}>Hola, Santiago 👋</Text>
           <Text style={styles.small}>
@@ -66,7 +77,6 @@ export default function HomeScreen() {
             <Text style={styles.brandAccent}>contratos inteligentes</Text>
           </Text>
         </View>
-
         <View style={styles.heroCard}>
           <View style={styles.heroLeft}>
             <View style={{ flex: 1 }}>
@@ -77,31 +87,36 @@ export default function HomeScreen() {
             </View>
           </View>
         </View>
-
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Contratos recientes</Text>
           <TouchableOpacity>
             <Text style={styles.viewAll}>Ver todos</Text>
           </TouchableOpacity>
         </View>
-
-        <FlatList
-          data={dummyContracts}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.listContainer}
-          renderItem={({ item }) => (
-            <ContractCard
-              title={item.title}
-              type={item.type}
-              status={item.status}
-              onPress={openPdfViewer}
-            />
-          )}
-          ListEmptyComponent={
-            <Text style={styles.emptyText}>No hay contratos aún</Text>
-          }
-        />
-
+        {loading ? (
+          <ActivityIndicator
+            size="large"
+            color="#2456a3"
+            style={{ marginTop: 50 }}
+          />
+        ) : (
+          <FlatList
+            data={contracts}
+            keyExtractor={(item) => item.id}
+            contentContainerStyle={styles.listContainer}
+            renderItem={({ item }) => (
+              <ContractCard
+                title={item.name}
+                type={item.type}
+                status={item.state}
+                onPress={() => openPdfViewer(item.id)}
+              />
+            )}
+            ListEmptyComponent={
+              <Text style={styles.emptyText}>No hay contratos aún</Text>
+            }
+          />
+        )}
         <BottomNav onPressCentral={() => setModalVisible(true)} />
         <UploadModal
           visible={modalVisible}
@@ -148,14 +163,6 @@ const styles = StyleSheet.create({
     marginBottom: 25,
   },
   heroLeft: { flexDirection: "row", alignItems: "center", flex: 1, gap: 14 },
-  heroIconCircle: {
-    width: 52,
-    height: 52,
-    borderRadius: 18,
-    backgroundColor: "#e6edfa",
-    alignItems: "center",
-    justifyContent: "center",
-  },
   heroTitle: {
     fontSize: 16.5,
     fontWeight: "700",

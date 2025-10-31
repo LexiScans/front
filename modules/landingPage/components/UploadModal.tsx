@@ -18,6 +18,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
+
+// 👇 Ajuste del tipo con los parámetros esperados
 type RootStackParamList = {
   Home: undefined;
   ContractSummary: undefined;
@@ -36,64 +38,56 @@ export default function UploadModal({ visible, onClose }: Props) {
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   useEffect(() => {
-    if (visible) {
-      Animated.timing(slide, {
-        toValue: 1,
-        duration: 300,
-        useNativeDriver: true,
-      }).start();
-    } else {
-      Animated.timing(slide, {
-        toValue: 0,
-        duration: 220,
-        useNativeDriver: true,
-      }).start();
-    }
+    Animated.timing(slide, {
+      toValue: visible ? 1 : 0,
+      duration: visible ? 300 : 220,
+      useNativeDriver: true,
+    }).start();
   }, [visible]);
-
-  const goToDetallesContrato = () => {
-    onClose();
-    setLoading(true);
-
-    setTimeout(() => {
-      setLoading(false);
-      navigation.navigate("DetallesContrato", {
-        fileUri: "dummy-path/documento.pdf",
-        fileName: "documento_demo.pdf",
-      });
-    }, 500);
-  };
 
   const pickDocument = async () => {
     try {
-      const res = await DocumentPicker.getDocumentAsync({
-        type: "application/pdf",
-      });
-      if (res.type === "success") {
-        Alert.alert("Archivo seleccionado", res.name);
+      setLoading(true); 
 
-        setTimeout(() => {
-          onClose();
-          navigation.navigate("DetallesContrato", {
-            fileUri: res.uri,
-            fileName: res.name,
-          });
-        }, 500);
+      const result = await DocumentPicker.getDocumentAsync({
+        type: "application/pdf",
+        copyToCacheDirectory: true,
+      });
+
+      if (result.canceled) {
+        setLoading(false);
+        return;
       }
-    } catch (e) {
-      Alert.alert("Error", "No se pudo seleccionar el documento");
+
+      const file = result.assets[0];
+      const pdf = {
+        uri: file.uri,
+        name: file.name,
+        type: file.mimeType || "application/pdf",
+      };
+
+      navigation.navigate("DetallesContrato", {
+        fileUri: pdf.uri,
+        fileName: pdf.name,
+      });
+    } catch (error: any) {
+      Alert.alert("Error", error.message || "No se pudo subir el archivo");
+    } finally {
+      setLoading(false);
     }
   };
 
   const takePhotoAndConvertPDF = async () => {
     try {
       setLoading(true);
+
       const { status } = await ImagePicker.requestCameraPermissionsAsync();
       if (status !== "granted") {
         Alert.alert("Permiso denegado", "Se requieren permisos de cámara");
         setLoading(false);
         return;
       }
+
       const photo = await ImagePicker.launchCameraAsync({ quality: 0.8 });
       if (photo.canceled) {
         setLoading(false);
@@ -102,22 +96,22 @@ export default function UploadModal({ visible, onClose }: Props) {
 
       const html = `<html><body style="margin:0"><img src="${photo.assets[0].uri}" style="width:100%;height:auto"/></body></html>`;
       const { uri } = await Print.printToFileAsync({ html });
-      const dest = FileSystem.documentDirectory + `contract_${Date.now()}.pdf`;
+
+      const fileName = `contract_${Date.now()}.pdf`;
+      const dest = FileSystem.documentDirectory + fileName;
+
       await FileSystem.copyAsync({ from: uri, to: dest });
 
       Alert.alert("PDF creado", `Guardado en: ${dest}`);
 
-      // Cierra modal y navega
-      setTimeout(() => {
-        onClose();
-        navigation.navigate("DetallesContrato", {
-          fileUri: dest,
-          fileName: `contract_${Date.now()}.pdf`,
-        });
-      }, 500);
+      onClose();
+      navigation.navigate("DetallesContrato", {
+        fileUri: dest,
+        fileName,
+      });
     } catch (e) {
       console.error(e);
-      Alert.alert("Error", "No se pudo crear PDF");
+      Alert.alert("Error", "No se pudo crear el PDF");
     } finally {
       setLoading(false);
     }
@@ -148,10 +142,7 @@ export default function UploadModal({ visible, onClose }: Props) {
             Selecciona un PDF o toma una foto y conviértela a PDF.
           </Text>
 
-          <TouchableOpacity
-            style={styles.actionBtn}
-            onPress={goToDetallesContrato}
-          >
+          <TouchableOpacity style={styles.actionBtn} onPress={pickDocument}>
             <Ionicons
               name="document-outline"
               size={20}
@@ -162,7 +153,7 @@ export default function UploadModal({ visible, onClose }: Props) {
 
           <TouchableOpacity
             style={styles.actionBtn}
-            onPress={goToDetallesContrato}
+            onPress={takePhotoAndConvertPDF}
           >
             <Ionicons name="camera-outline" size={20} color={Colors.primary} />
             <Text style={styles.actionText}>Tomar foto y convertir a PDF</Text>

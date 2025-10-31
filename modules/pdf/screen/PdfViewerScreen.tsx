@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from "react";
+import React, { useState, useRef, useCallback, useEffect } from "react";
 import {
   View,
   Text,
@@ -7,15 +7,20 @@ import {
   ActivityIndicator,
   PanResponder,
   Platform,
+  StyleSheet,
+  Dimensions,
+  StatusBar,
 } from "react-native";
 import { WebView } from "react-native-webview";
 import { Svg, Path } from "react-native-svg";
 import { useNavigation } from "@react-navigation/native";
-import SignatureModal from "../components/ConfirmSignatureModal";
+import SignatureModal from "../components/SignatureModal";
 import ConfirmSignatureModal from "../components/ConfirmSignatureModal";
 import SuccessModal from "../../../components/SuccessModal";
 import WarningModal from "../../../components/WarningModal";
-import { styles } from "./styles";
+
+const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
+const statusBarHeight = StatusBar.currentHeight || 0;
 
 const PdfViewerScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -29,8 +34,15 @@ const PdfViewerScreen: React.FC = () => {
     { x: number; y: number }[][]
   >([]);
   const [placingSignature, setPlacingSignature] = useState(false);
-  const [signaturePosition, setSignaturePosition] = useState({ x: 50, y: 100 });
+  const [signaturePosition, setSignaturePosition] = useState({
+    x: screenWidth * 0.1,
+    y: screenHeight * 0.2, 
+  });
   const [signatureBase64, setSignatureBase64] = useState<string | null>(null);
+  const [pdfDimensions, setPdfDimensions] = useState({
+    width: screenWidth - 32,
+    height: screenHeight * 0.45, // Más reducido
+  });
 
   const scrollViewRef = useRef<ScrollView>(null);
   const webViewRef = useRef<WebView>(null);
@@ -38,18 +50,37 @@ const PdfViewerScreen: React.FC = () => {
   const [pdfUrl, setPdfUrl] = useState(
     "https://cimav.edu.mx/pnt/LGPDPPSO/2.2.2.pdf"
   );
+
   const viewerUrl = `https://docs.google.com/gview?embedded=true&url=${encodeURIComponent(
     pdfUrl
   )}`;
+
+  useEffect(() => {
+    const calculatePdfDimensions = () => {
+      const aspectRatio = 1.414; // Ratio A4
+      const maxWidth = screenWidth - 32;
+      // Altura más reducida para evitar la cámara
+      const maxHeight = screenHeight * 0.45;
+      const calculatedHeight = Math.min(maxWidth * aspectRatio, maxHeight);
+
+      setPdfDimensions({ width: maxWidth, height: calculatedHeight });
+    };
+
+    calculatePdfDimensions();
+  }, []);
 
   const handleSignatureConfirm = useCallback(() => {
     if (signaturePaths.length === 0) {
       setWarningModalVisible(true);
       return;
     }
+    if (!signatureBase64) {
+      console.log("Esperando base64 de la firma...");
+      return;
+    }
     setSignatureModalVisible(false);
     setPlacingSignature(true);
-  }, [signaturePaths]);
+  }, [signaturePaths, signatureBase64]);
 
   const moveResponder = useRef(
     PanResponder.create({
@@ -57,8 +88,17 @@ const PdfViewerScreen: React.FC = () => {
       onMoveShouldSetPanResponder: () => true,
       onPanResponderMove: (evt, gestureState) => {
         setSignaturePosition({
-          x: signaturePosition.x + gestureState.dx,
-          y: signaturePosition.y + gestureState.dy,
+          x: Math.max(
+            0,
+            Math.min(screenWidth - 150, signaturePosition.x + gestureState.dx)
+          ),
+          y: Math.max(
+            50, // Mínimo más alto para evitar cámara
+            Math.min(
+              pdfDimensions.height - 75,
+              signaturePosition.y + gestureState.dy
+            )
+          ),
         });
       },
     })
@@ -81,14 +121,11 @@ const PdfViewerScreen: React.FC = () => {
         x: signaturePosition.x,
         y: signaturePosition.y,
       };
-      const response = await fetch(
-        "https://485t7d4i73.execute-api.us-east-1.amazonaws.com/develop/contracts/sign",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        }
-      );
+      const response = await fetch("http://10.0.2.2:8083/contracts/sign", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
       const data = await response.json();
       setPdfUrl(data.signedUrl);
       setSuccessModalVisible(true);
@@ -124,7 +161,7 @@ const PdfViewerScreen: React.FC = () => {
             <Path
               key={index}
               d={d}
-              stroke="#111"
+              stroke="#0b2e42ff"
               strokeWidth={3 * scale}
               fill="none"
               strokeLinecap="round"
@@ -137,60 +174,119 @@ const PdfViewerScreen: React.FC = () => {
     []
   );
 
+  // HTML personalizado para mejor visualización del PDF
+  const pdfHtml = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+      <style>
+        body {
+          margin: 0;
+          padding: 0;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          background-color: #f5f5f5;
+          height: 100vh;
+          overflow: hidden;
+        }
+        .pdf-container {
+          width: 100%;
+          height: 100%;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+        }
+        iframe {
+          width: 100%;
+          height: 100%;
+          border: none;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="pdf-container">
+        <iframe src="${viewerUrl}" type="application/pdf"></iframe>
+      </div>
+    </body>
+    </html>
+  `;
+
   return (
-    <View style={styles.container}>
-      <View style={styles.webviewContainer}>
-        {loading && (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#1E88E5" />
-            <Text style={styles.loadingText}>Cargando contrato...</Text>
-          </View>
-        )}
+    <View style={materialStyles.container}>
+      {/* Espacio para la cámara */}
+      <View style={materialStyles.cameraSpace} />
 
-        <ScrollView
-          ref={scrollViewRef}
-          horizontal
-          pagingEnabled
-          style={styles.scrollView}
-          showsHorizontalScrollIndicator={false}
-        >
-          <WebView
-            ref={webViewRef}
-            source={{ uri: viewerUrl }}
-            style={styles.webview}
-            onLoadEnd={handleLoadEnd}
-            javaScriptEnabled
-            domStorageEnabled
-          />
-        </ScrollView>
-
-        {placingSignature && signaturePaths.length > 0 && (
-          <View
-            style={[
-              styles.signatureOverlay,
-              { top: signaturePosition.y, left: signaturePosition.x },
-            ]}
-            {...moveResponder.panHandlers}
-          >
-            <Svg width={150} height={75} style={styles.signatureSvg}>
-              {pathsToSvg(signaturePaths, 0.25)}
-            </Svg>
-          </View>
-        )}
+      <View style={materialStyles.header}>
+        <Text style={materialStyles.headerTitle}>
+          Vista Previa del Contrato
+        </Text>
       </View>
 
-      <View style={styles.bottomSection}>
+      {/* Sección del PDF - Más baja */}
+      <View style={materialStyles.pdfSection}>
+        <View style={materialStyles.webviewContainer}>
+          {loading && (
+            <View style={materialStyles.loadingContainer}>
+              <ActivityIndicator size="large" color="#0b2e42ff" />
+              <Text style={materialStyles.loadingText}>
+                Cargando contrato...
+              </Text>
+            </View>
+          )}
+
+          <View
+            style={[
+              materialStyles.pdfContainer,
+              { height: pdfDimensions.height },
+            ]}
+          >
+            <WebView
+              ref={webViewRef}
+              source={{ html: pdfHtml }}
+              style={[materialStyles.webview, { height: pdfDimensions.height }]}
+              onLoadEnd={handleLoadEnd}
+              javaScriptEnabled={true}
+              domStorageEnabled={true}
+              startInLoadingState={true}
+              scalesPageToFit={true}
+              mixedContentMode="compatibility"
+            />
+          </View>
+
+          {placingSignature && signaturePaths.length > 0 && (
+            <View
+              style={[
+                materialStyles.signatureOverlay,
+                {
+                  top: signaturePosition.y,
+                  left: signaturePosition.x,
+                },
+              ]}
+              {...moveResponder.panHandlers}
+            >
+              <Svg width={150} height={75} style={materialStyles.signatureSvg}>
+                {pathsToSvg(signaturePaths, 0.25)}
+              </Svg>
+            </View>
+          )}
+        </View>
+      </View>
+
+      {/* Sección de controles - Con suficiente espacio */}
+      <View style={materialStyles.controlsSection}>
         <ScrollView
-          ref={scrollViewRef}
-          style={styles.bottomScrollView}
-          contentContainerStyle={styles.scrollContent}
+          style={materialStyles.bottomScrollView}
+          contentContainerStyle={materialStyles.scrollContent}
           showsVerticalScrollIndicator={false}
-          nestedScrollEnabled
         >
           {signaturePaths.length > 0 && !placingSignature && (
-            <View style={styles.signaturePreview}>
-              <Text style={styles.previewTitle}>Vista previa de tu firma:</Text>
-              <View style={styles.previewContainer}>
+            <View style={materialStyles.signaturePreview}>
+              <Text style={materialStyles.previewTitle}>
+                Vista previa de tu firma:
+              </Text>
+              <View style={materialStyles.previewContainer}>
                 <Svg width={200} height={100}>
                   {pathsToSvg(signaturePaths, 0.3)}
                 </Svg>
@@ -198,46 +294,27 @@ const PdfViewerScreen: React.FC = () => {
             </View>
           )}
 
-          <View
-            style={[
-              styles.buttonsContainer,
-              { width: "40%", alignSelf: "center" },
-            ]}
-          >
+          <View style={materialStyles.buttonsContainer}>
             <TouchableOpacity
-              style={[
-                styles.actionButton,
-                {
-                  backgroundColor: "#115086ff",
-                  borderRadius: 30,
-                  paddingVertical: 14,
-                  paddingHorizontal: 30,
-                },
-              ]}
+              style={materialStyles.materialButton}
               onPress={() => setSignatureModalVisible(true)}
             >
-              <Text style={styles.actionText}>
-                ✍️{" "}
-                {signaturePaths.length > 0
-                  ? "Cambiar Firma"
-                  : "Firmar Contrato"}
+              <Text style={materialStyles.buttonText}>
+                {signaturePaths.length > 0 ? "Cambiar Firma" : "Firmar"}
               </Text>
             </TouchableOpacity>
           </View>
 
           {placingSignature && (
-            <View style={styles.placementControls}>
-              <Text style={styles.placementText}>
-                Arrastra la firma a la posición deseada
+            <View style={materialStyles.placementControls}>
+              <Text style={materialStyles.placementText}>
+                Arrastra la firma a la posición deseada en el PDF
               </Text>
               <TouchableOpacity
-                style={[
-                  styles.confirmPlacementButton,
-                  { backgroundColor: "#1E88E5" },
-                ]}
+                style={materialStyles.materialButton}
                 onPress={handleConfirmSignaturePlacement}
               >
-                <Text style={styles.confirmPlacementText}>
+                <Text style={materialStyles.buttonText}>
                   Confirmar posición y Firmar
                 </Text>
               </TouchableOpacity>
@@ -246,7 +323,6 @@ const PdfViewerScreen: React.FC = () => {
         </ScrollView>
       </View>
 
-      {/* Modales */}
       <SignatureModal
         visible={signatureModalVisible}
         onClose={() => setSignatureModalVisible(false)}
@@ -281,3 +357,134 @@ const PdfViewerScreen: React.FC = () => {
 };
 
 export default PdfViewerScreen;
+
+const materialStyles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#F9FAFB",
+    paddingTop: Platform.OS === "ios" ? 40 : 25,
+  },
+  cameraSpace: {
+    height: Platform.OS === "ios" ? 0 : 40,
+  },
+  header: {
+    padding: 12,
+    backgroundColor: "white",
+    borderBottomWidth: 1,
+    borderBottomColor: "#E5E7EB",
+    marginTop: 5,
+  },
+  headerTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#111827",
+    textAlign: "center",
+  },
+  pdfSection: {
+    flex: 1,
+    paddingHorizontal: 16,
+    paddingTop: 8,
+  },
+  controlsSection: {
+    flex: 0.5,
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    paddingBottom: 10,
+  },
+  webviewContainer: {
+    flex: 1,
+    borderRadius: 12,
+    overflow: "hidden",
+    backgroundColor: "white",
+    elevation: 3,
+    position: "relative",
+  },
+  pdfContainer: {
+    width: "100%",
+    backgroundColor: "#f5f5f5",
+  },
+  loadingContainer: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "white",
+    zIndex: 10,
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 16,
+    color: "#374151",
+  },
+  webview: {
+    flex: 1,
+    borderRadius: 12,
+  },
+  signatureOverlay: {
+    position: "absolute",
+    zIndex: 100,
+  },
+  signatureSvg: {
+  },
+  bottomScrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: 15,
+    minHeight: 180,
+  },
+  signaturePreview: {
+    backgroundColor: "white",
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    elevation: 2,
+  },
+  previewTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    marginBottom: 8,
+    color: "#111827",
+    textAlign: "center",
+  },
+  previewContainer: {
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+    borderRadius: 8,
+    padding: 8,
+    alignItems: "center",
+  },
+  buttonsContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    marginBottom: 16,
+  },
+  materialButton: {
+    backgroundColor: "#0b2e42ff",
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    alignItems: "center",
+    elevation: 2,
+    minWidth: 200,
+    marginVertical: 8,
+  },
+  buttonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  placementControls: {
+    marginTop: 8,
+    alignItems: "center",
+  },
+  placementText: {
+    marginBottom: 12,
+    fontSize: 14,
+    color: "#6B7280",
+    textAlign: "center",
+  },
+});

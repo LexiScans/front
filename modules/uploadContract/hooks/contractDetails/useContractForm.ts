@@ -4,9 +4,18 @@ export interface Parte {
   nombre: string;
 }
 
+export enum Type {
+  EMPLEO = "EMPLEO",
+  SERVICIOS = "SERVICIOS",
+  ARRENDAMIENTO = "ARRENDAMIENTO",
+  CONFIDENCIALIDAD = "CONFIDENCIALIDAD",
+  VENTAS = "VENTAS",
+  LICENCIA = "LICENCIA",
+}
+
 export const useContractForm = () => {
   const [titulo, setTitulo] = useState("");
-  const [tipo, setTipo] = useState("");
+  const [tipo, setTipo] = useState<Type | "">("");
   const [partes, setPartes] = useState<Parte[]>([{ nombre: "" }]);
   const [fechaFirma, setFechaFirma] = useState<Date | null>(null);
   const [vencimiento, setVencimiento] = useState<Date | null>(null);
@@ -17,13 +26,12 @@ export const useContractForm = () => {
     useState(false);
 
   const tiposContrato = [
-    { label: "Empleo", value: "Empleo" },
-    { label: "Servicios", value: "Servicios" },
-    { label: "Arrendamiento", value: "Arrendamiento" },
-    { label: "Confidencialidad", value: "Confidencialidad" },
-    { label: "Ventas", value: "Ventas" },
-    { label: "Licencia", value: "Licencia" },
-    { label: "Préstamo", value: "Préstamo" },
+    { label: "Empleo", value: Type.EMPLEO },
+    { label: "Servicios", value: Type.SERVICIOS },
+    { label: "Arrendamiento", value: Type.ARRENDAMIENTO },
+    { label: "Confidencialidad", value: Type.CONFIDENCIALIDAD },
+    { label: "Ventas", value: Type.VENTAS },
+    { label: "Licencia", value: Type.LICENCIA },
   ];
 
   const agregarParte = () => setPartes([...partes, { nombre: "" }]);

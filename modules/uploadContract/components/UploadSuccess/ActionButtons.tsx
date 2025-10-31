@@ -1,17 +1,26 @@
 import React from "react";
-import { TouchableOpacity, Text } from "react-native";
+import { TouchableOpacity, Text, Alert } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { styles } from "../../styles/uploadSuccess.styles";
 
-export default function ActionButtons() {
-  const navigation = useNavigation();
+type ActionButtonsProps = {
+  contractId?: string;
+};
+
+type NavigationProp = {
+  navigate: (screen: string, params?: any) => void;
+};
+
+export default function ActionButtons({ contractId }: ActionButtonsProps) {
+  const navigation = useNavigation<NavigationProp>();
+
+  const handleAnalyze = () => {
+    navigation.navigate("ContractSummary", { contractId: contractId });
+  };
 
   return (
     <>
-      <TouchableOpacity
-        style={styles.analyzeBtn}
-        onPress={() => navigation.navigate("ContractSummary")}
-      >
+      <TouchableOpacity style={styles.analyzeBtn} onPress={handleAnalyze}>
         <Text style={styles.analyzeText}>Iniciar análisis</Text>
       </TouchableOpacity>
 
