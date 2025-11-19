@@ -9,9 +9,9 @@ import {
   TouchableOpacity,
   Platform,
   ActivityIndicator,
-  Alert,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import BottomNav from "../../../components/BottomNav";
 import UploadModal from "../components/UploadModal";
 import ContractCard from "../components/ContractCard";
@@ -36,11 +36,25 @@ export default function HomeScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [contracts, setContracts] = useState<Contract[]>([]);
   const [loading, setLoading] = useState(true);
+  const [userId, setUserId] = useState<string | null>(null);
+
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const userId = "45224151-7b09-45ff-835b-413062c2e815";
+
+  useEffect(() => {
+    const loadUserId = async () => {
+      const storedUserId = await AsyncStorage.getItem("userId");
+      if (storedUserId) {
+        setUserId(storedUserId);
+      } else {
+        navigation.navigate("Login");
+      }
+    };
+    loadUserId();
+  }, [navigation]);
 
   const fetchContracts = async () => {
+    if (!userId) return;
     try {
       const response = await fetch(
         `${ENV.PDF_SERVICE}/contracts/user/${userId}`
@@ -56,11 +70,14 @@ export default function HomeScreen() {
   };
 
   useEffect(() => {
-    fetchContracts();
-  }, []);
+    if (userId) {
+      fetchContracts();
+    }
+  }, [userId]);
 
   const openPdfViewer = (contractId: string) => {
-    navigation.navigate("ContractSummary", { contractId });
+    console.log(contractId);
+    navigation.navigate("ContractSummary", { contractId: contractId });
   };
 
   return (
@@ -113,7 +130,18 @@ export default function HomeScreen() {
               />
             )}
             ListEmptyComponent={
-              <Text style={styles.emptyText}>No hay contratos aún</Text>
+              <View style={styles.emptyContainer}>
+                <Text style={styles.emptyTitle}>¡No tienes contratos aún!</Text>
+                <Text style={styles.emptySubtitle}>
+                  Analiza tus contratos ahora y mantén todo bajo control
+                </Text>
+                <TouchableOpacity
+                  style={styles.emptyButton}
+                  onPress={() => setModalVisible(true)}
+                >
+                  <Text style={styles.emptyButtonText}>Analizar contrato</Text>
+                </TouchableOpacity>
+              </View>
             }
           />
         )}
@@ -179,12 +207,36 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   sectionTitle: { fontSize: 17, fontWeight: "700", color: "#23344e" },
-  viewAll: { fontSize: 14, color: "#2456a3", fontWeight: "600" },
+  viewAll: { fontSize: 14, color: "#0b2e42ff", fontWeight: "600" },
   listContainer: { paddingHorizontal: 22, paddingBottom: 110 },
-  emptyText: {
+  emptyContainer: {
+    marginTop: 50,
+    alignItems: "center",
+    paddingHorizontal: 20,
+  },
+  emptyTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#0b2e42ff",
+    marginBottom: 8,
     textAlign: "center",
-    color: "#9aa3b5",
+  },
+  emptySubtitle: {
     fontSize: 14,
-    marginTop: 40,
+    color: "#6b7b91",
+    marginBottom: 20,
+    textAlign: "center",
+    lineHeight: 20,
+  },
+  emptyButton: {
+    backgroundColor: "#0b2e42ff",
+    paddingVertical: 12,
+    paddingHorizontal: 25,
+    borderRadius: 12,
+  },
+  emptyButtonText: {
+    color: "#fff",
+    fontWeight: "700",
+    fontSize: 14,
   },
 });

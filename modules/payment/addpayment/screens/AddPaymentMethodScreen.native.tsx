@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -10,17 +10,26 @@ import {
 import { CardField, useConfirmSetupIntent } from "@stripe/stripe-react-native";
 import { Ionicons } from "@expo/vector-icons";
 import ENV from "../../../../config/env";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import SuccessModal from "../../../../components/SuccessModal";
 import WarningModal from "../../../../components/WarningModal";
 
 const AddPaymentMethodScreen = ({ navigation }: any) => {
   const [cardDetails, setCardDetails] = useState<any>();
+  const [userId, setUserId] = useState<string | null>(null);
   const { confirmSetupIntent } = useConfirmSetupIntent();
 
-  // Estados para modales
   const [successVisible, setSuccessVisible] = useState(false);
   const [warningVisible, setWarningVisible] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
+
+  useEffect(() => {
+    const loadUserId = async () => {
+      const storedUserId = await AsyncStorage.getItem("userId");
+      if (storedUserId) setUserId(storedUserId);
+    };
+    loadUserId();
+  }, []);
 
   const showSuccess = (message: string) => {
     setModalMessage(message);
@@ -38,6 +47,11 @@ const AddPaymentMethodScreen = ({ navigation }: any) => {
       return;
     }
 
+    if (!userId) {
+      showWarning("No se pudo obtener tu usuario. Por favor inicia sesión de nuevo.");
+      return;
+    }
+
     try {
       const response = await fetch(
         `${ENV.PAYMENT_SERVICE}/payment/create-setup-intent?customerId=cus_T94eOMGUfePnLl`,
@@ -51,9 +65,7 @@ const AddPaymentMethodScreen = ({ navigation }: any) => {
 
       const { setupIntent, error } = await confirmSetupIntent(
         data.clientSecret,
-        {
-          paymentMethodType: "Card",
-        }
+        { paymentMethodType: "Card" }
       );
 
       if (error) {
@@ -63,7 +75,7 @@ const AddPaymentMethodScreen = ({ navigation }: any) => {
 
       if (setupIntent) {
         const addMethodBody = {
-          userId: "45224151-7b09-45ff-835b-413062c2e815",
+          userId: userId,
           customerId: "cus_T94eOMGUfePnLl",
           paymentMethodId: setupIntent.paymentMethodId,
           defaultPayment: true,
@@ -152,7 +164,6 @@ const AddPaymentMethodScreen = ({ navigation }: any) => {
         <View style={styles.bottomSpacer} />
       </ScrollView>
 
-      {/* Modales de Éxito y Advertencia */}
       <SuccessModal
         visible={successVisible}
         onClose={() => {
@@ -174,15 +185,8 @@ const AddPaymentMethodScreen = ({ navigation }: any) => {
 export default AddPaymentMethodScreen;
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-  },
-  scroll: {
-    flexGrow: 1,
-    padding: 20,
-    paddingBottom: 120,
-  },
+  container: { flex: 1, backgroundColor: "#fff" },
+  scroll: { flexGrow: 1, padding: 20, paddingBottom: 120 },
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -190,111 +194,22 @@ const styles = StyleSheet.create({
     marginBottom: 30,
     marginTop: 50,
   },
-  backButton: {
-    padding: 8,
-    backgroundColor: "#f8fafc",
-    borderRadius: 8,
-  },
-  headerTitle: {
-    fontSize: 22,
-    fontWeight: "700",
-    color: "#0b2e42ff",
-  },
-  placeholder: {
-    width: 40,
-  },
-  brandContainer: {
-    marginBottom: 25,
-  },
-  brandText: {
-    fontSize: 18,
-    color: "#0b2e42ff",
-    fontWeight: "700",
-    textAlign: "center",
-    marginBottom: 8,
-  },
-  divider: {
-    height: 2,
-    backgroundColor: "#0b2e42ff",
-    width: "30%",
-    alignSelf: "center",
-    borderRadius: 2,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: "#6B7280",
-    textAlign: "center",
-    marginBottom: 30,
-    lineHeight: 22,
-  },
-  cardSection: {
-    marginBottom: 40,
-  },
-  cardLabel: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 15,
-    paddingLeft: 5,
-  },
-  cardLabelText: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#0b2e42ff",
-    marginLeft: 8,
-  },
-  card: {
-    backgroundColor: "#FFFFFF",
-    textColor: "#111827",
-    borderColor: "#e5e7eb",
-    borderWidth: 1,
-    borderRadius: 8,
-  },
-  cardContainer: {
-    height: 50,
-  },
-  button: {
-    backgroundColor: "#0b2e42ff",
-    paddingVertical: 16,
-    borderRadius: 12,
-    alignItems: "center",
-    flexDirection: "row",
-    justifyContent: "center",
-    gap: 8,
-    shadowColor: "#0b2e42ff",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
-    marginBottom: 20,
-  },
-  disabledButton: {
-    backgroundColor: "#9CA3AF",
-    shadowColor: "transparent",
-  },
-  buttonText: {
-    color: "#fff",
-    fontWeight: "600",
-    fontSize: 16,
-  },
-  securityNote: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    padding: 12,
-    backgroundColor: "#f0f9ff",
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#0b2e42ff",
-  },
-  securityText: {
-    fontSize: 14,
-    color: "#0b2e42ff",
-    fontWeight: "500",
-    flex: 1,
-    textAlign: "center",
-  },
-  bottomSpacer: {
-    height: 60,
-  },
+  backButton: { padding: 8, backgroundColor: "#f8fafc", borderRadius: 8 },
+  headerTitle: { fontSize: 22, fontWeight: "700", color: "#0b2e42ff" },
+  placeholder: { width: 40 },
+  brandContainer: { marginBottom: 25 },
+  brandText: { fontSize: 18, color: "#0b2e42ff", fontWeight: "700", textAlign: "center", marginBottom: 8 },
+  divider: { height: 2, backgroundColor: "#0b2e42ff", width: "30%", alignSelf: "center", borderRadius: 2 },
+  subtitle: { fontSize: 16, color: "#6B7280", textAlign: "center", marginBottom: 30, lineHeight: 22 },
+  cardSection: { marginBottom: 40 },
+  cardLabel: { flexDirection: "row", alignItems: "center", marginBottom: 15, paddingLeft: 5 },
+  cardLabelText: { fontSize: 16, fontWeight: "600", color: "#0b2e42ff", marginLeft: 8 },
+  card: { backgroundColor: "#FFFFFF", textColor: "#111827", borderColor: "#e5e7eb", borderWidth: 1, borderRadius: 8 },
+  cardContainer: { height: 50 },
+  button: { backgroundColor: "#0b2e42ff", paddingVertical: 16, borderRadius: 12, alignItems: "center", flexDirection: "row", justifyContent: "center", gap: 8, shadowColor: "#0b2e42ff", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 6, marginBottom: 20 },
+  disabledButton: { backgroundColor: "#9CA3AF", shadowColor: "transparent" },
+  buttonText: { color: "#fff", fontWeight: "600", fontSize: 16 },
+  securityNote: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, padding: 12, backgroundColor: "#f0f9ff", borderRadius: 8, borderWidth: 1, borderColor: "#0b2e42ff" },
+  securityText: { fontSize: 14, color: "#0b2e42ff", fontWeight: "500", flex: 1, textAlign: "center" },
+  bottomSpacer: { height: 60 },
 });

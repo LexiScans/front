@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback } from "react";
-
 import {
   View,
   Text,
@@ -11,15 +10,14 @@ import {
 import { RadioButton } from "react-native-paper";
 import BottomNav from "../../../../components/BottomNav";
 import PaymentCard from "../../buypayment/components/PaymentCard";
-import { useNavigation, useFocusEffect } from "@react-navigation/native"; 
-
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import ENV from "../../../../config/env";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import SuccessModal from "../../../../components/SuccessModal";
 import WarningModal from "../../../../components/WarningModal";
 
 const COLORS = ["#171717", "#1E3A8A", "#1fac84ff", "#dd3737ff"];
-const USER_ID = "45224151-7b09-45ff-835b-413062c2e815";
 
 const PaymentMethodsScreen = () => {
   const [cards, setCards] = useState<
@@ -32,11 +30,20 @@ const PaymentMethodsScreen = () => {
     }[]
   >([]);
   const [selectedCard, setSelectedCard] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
   const navigation = useNavigation();
   const [successVisible, setSuccessVisible] = useState(false);
   const [warningVisible, setWarningVisible] = useState(false);
   const [modalTitle, setModalTitle] = useState("");
   const [modalMessage, setModalMessage] = useState("");
+
+  useEffect(() => {
+    const loadUserId = async () => {
+      const storedUserId = await AsyncStorage.getItem("userId");
+      if (storedUserId) setUserId(storedUserId);
+    };
+    loadUserId();
+  }, []);
 
   const showSuccess = (title: string, message: string) => {
     setModalTitle(title);
@@ -51,9 +58,10 @@ const PaymentMethodsScreen = () => {
   };
 
   const fetchCards = async () => {
+    if (!userId) return;
     try {
       const response = await fetch(
-        `${ENV.PAYMENT_SERVICE}/payment/methods/user/${USER_ID}`
+        `${ENV.PAYMENT_SERVICE}/payment/methods/user/${userId}`
       );
       const data = await response.json();
 
@@ -73,26 +81,27 @@ const PaymentMethodsScreen = () => {
     }
   };
 
- useFocusEffect(
-  useCallback(() => {
-    fetchCards();
-  }, [])
-);
+  useFocusEffect(
+    useCallback(() => {
+      fetchCards();
+    }, [userId])
+  );
 
   const handleSelect = async () => {
-    if (!selectedCard) {
-      showWarning("Error", "No hay tarjeta seleccionada.");
+    if (!selectedCard || !userId) {
+      showWarning(
+        "Error",
+        "No hay tarjeta seleccionada o usuario no disponible."
+      );
       return;
     }
 
     try {
       const changeMethod = {
-        userId: USER_ID,
+        userId,
         customerId: "cus_T94eOMGUfePnLl",
         id: selectedCard,
       };
-
-      console.log(selectedCard);
 
       const response = await fetch(
         `${ENV.PAYMENT_SERVICE}/payment/methods/default`,
@@ -116,6 +125,7 @@ const PaymentMethodsScreen = () => {
   };
 
   const handleDelete = async (cardId: string) => {
+    if (!userId) return;
     try {
       const response = await fetch(
         `${ENV.PAYMENT_SERVICE}/payment/methods/${cardId}`,
@@ -141,7 +151,6 @@ const PaymentMethodsScreen = () => {
         </View>
 
         <Text style={styles.brandText}>Grupo LexiScan</Text>
-
         <Text style={styles.subtitle}>
           Selecciona o agrega una tarjeta para tu suscripción.
         </Text>
@@ -184,7 +193,6 @@ const PaymentMethodsScreen = () => {
         </TouchableOpacity>
       </ScrollView>
 
-      {/* Modales */}
       <SuccessModal
         visible={successVisible}
         onClose={() => setSuccessVisible(false)}
@@ -207,25 +215,14 @@ const PaymentMethodsScreen = () => {
 export default PaymentMethodsScreen;
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-  },
-  scrollContent: {
-    padding: 20,
-    paddingBottom: 180,
-    marginTop: 60,
-  },
+  container: { flex: 1, backgroundColor: "#fff" },
+  scrollContent: { padding: 20, paddingBottom: 180, marginTop: 60 },
   header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
   },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: "#000",
-  },
+  headerTitle: { fontSize: 20, fontWeight: "700", color: "#000" },
   brandText: {
     fontSize: 16,
     color: "#0b2e42ff",
@@ -233,25 +230,10 @@ const styles = StyleSheet.create({
     marginBottom: 18,
     fontWeight: "700",
   },
-  subtitle: {
-    fontSize: 15,
-    color: "#000",
-    marginBottom: 20,
-  },
-  cardRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 18,
-  },
-  cardWrapper: {
-    flex: 1,
-    borderRadius: 10,
-    overflow: "hidden",
-  },
-  defaultCard: {
-    borderWidth: 2,
-    borderColor: "#0b2e42ff",
-  },
+  subtitle: { fontSize: 15, color: "#000", marginBottom: 20 },
+  cardRow: { flexDirection: "row", alignItems: "center", marginBottom: 18 },
+  cardWrapper: { flex: 1, borderRadius: 10, overflow: "hidden" },
+  defaultCard: { borderWidth: 2, borderColor: "#0b2e42ff" },
   ribbon: {
     position: "absolute",
     top: -2,
@@ -261,11 +243,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     borderBottomRightRadius: 6,
   },
-  ribbonText: {
-    color: "#fff",
-    fontSize: 12,
-    fontWeight: "700",
-  },
+  ribbonText: { color: "#fff", fontSize: 12, fontWeight: "700" },
   selectBtn: {
     backgroundColor: "#0b2e42ff",
     paddingVertical: 14,
@@ -273,11 +251,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 10,
   },
-  selectText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
-  },
+  selectText: { color: "#fff", fontSize: 16, fontWeight: "600" },
   addBtn: {
     flexDirection: "row",
     alignItems: "center",

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import {
   View,
   Text,
@@ -11,7 +11,8 @@ import {
 } from "react-native";
 import { Colors } from "../../../../theme";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
-
+import SuccessModal from "../../../../components/SuccessModal";
+import WarningModal from "../../../../components/WarningModal";
 type Props = NativeStackScreenProps<any, any>;
 
 export default function RegisterScreen({ navigation }: Props) {
@@ -19,8 +20,11 @@ export default function RegisterScreen({ navigation }: Props) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [successVisible, setSuccessVisible] = useState(false);
+  const [warningVisible, setWarningVisible] = useState(false);
+  const [warningMessage, setWarningMessage] = useState("");
+  const btnScale = useRef(new Animated.Value(1)).current;
 
-  const btnScale = new Animated.Value(1);
   const onPressIn = () =>
     Animated.spring(btnScale, { toValue: 0.97, useNativeDriver: true }).start();
   const onPressOut = () =>
@@ -30,13 +34,38 @@ export default function RegisterScreen({ navigation }: Props) {
       useNativeDriver: true,
     }).start();
 
-  const handleRegister = () => {
-    if (password !== confirmPassword) {
-      alert("Las contraseñas no coinciden");
+  const handleRegister = async () => {
+    if (!name || !email || !password || !confirmPassword) {
+      setWarningMessage("Por favor completa todos los campos");
+      setWarningVisible(true);
       return;
     }
-    // Aquí puedes agregar lógica de registro real (API, Firebase, etc.)
-    navigation.replace("Home");
+    if (password !== confirmPassword) {
+      setWarningMessage("Las contraseñas no coinciden");
+      setWarningVisible(true);
+      return;
+    }
+
+    try {
+      const res = await fetch("http://10.0.2.2:8079/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password }),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        setWarningMessage(errorData.message || "Registro fallido");
+        setWarningVisible(true);
+        return;
+      }
+
+      const result = await res.text();
+      setSuccessVisible(true);
+    } catch (err: any) {
+      setWarningMessage(err.message || "Registro fallido");
+      setWarningVisible(true);
+    }
   };
 
   return (
@@ -112,6 +141,23 @@ export default function RegisterScreen({ navigation }: Props) {
           <Text style={styles.loginText}>¿Ya tienes cuenta? Inicia sesión</Text>
         </TouchableOpacity>
       </View>
+
+      <SuccessModal
+        visible={successVisible}
+        onClose={() => {
+          setSuccessVisible(false);
+          navigation.replace("Login");
+        }}
+        title="Registro exitoso"
+        message="Debes ahora verificar tu cuenta"
+      />
+
+      <WarningModal
+        visible={warningVisible}
+        onClose={() => setWarningVisible(false)}
+        title="Registro fallido"
+        message={warningMessage}
+      />
     </KeyboardAvoidingView>
   );
 }

@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   View,
   Text,
@@ -8,17 +8,37 @@ import {
   KeyboardAvoidingView,
   Platform,
   Animated,
+  Alert,
 } from "react-native";
 import { Colors } from "../../../../theme";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import SuccessModal from "../../../../components/SuccessModal";
+import WarningModal from "../../../../components/WarningModal";
 
 type Props = NativeStackScreenProps<any, any>;
 
 export default function LoginScreen({ navigation }: Props) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
+  const [successVisible, setSuccessVisible] = useState(false);
+  const [warningVisible, setWarningVisible] = useState(false);
+  const [warningMessage, setWarningMessage] = useState("");
   const btnScale = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    const loadSavedCredentials = async () => {
+      try {
+        const savedEmail = await AsyncStorage.getItem("savedEmail");
+        const savedPassword = await AsyncStorage.getItem("savedPassword");
+        if (savedEmail) setEmail(savedEmail);
+        if (savedPassword) setPassword(savedPassword);
+      } catch (err) {
+        console.log("Error loading saved credentials", err);
+      }
+    };
+    loadSavedCredentials();
+  }, []);
 
   const onPressIn = () =>
     Animated.spring(btnScale, { toValue: 0.97, useNativeDriver: true }).start();
@@ -29,8 +49,38 @@ export default function LoginScreen({ navigation }: Props) {
       useNativeDriver: true,
     }).start();
 
-  const handleLogin = () => {
-    navigation.replace("Home");
+  const handleLogin = async () => {
+    if (!email || !password) {
+      setWarningMessage("Por favor completa todos los campos");
+      setWarningVisible(true);
+      return;
+    }
+
+    try {
+      const res = await fetch("http://10.0.2.2:8079/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        setWarningMessage(errorData.message || "Login fallido");
+        setWarningVisible(true);
+        return;
+      }
+
+      const data = await res.json();
+      await AsyncStorage.setItem("idToken", data.idToken);
+      await AsyncStorage.setItem("userId", data.userId);
+      await AsyncStorage.setItem("savedEmail", email);
+
+
+      setSuccessVisible(true);
+    } catch (err: any) {
+      setWarningMessage(err.message || "Login fallido");
+      setWarningVisible(true);
+    }
   };
 
   return (
@@ -54,6 +104,8 @@ export default function LoginScreen({ navigation }: Props) {
           style={styles.input}
           value={email}
           onChangeText={setEmail}
+          autoComplete={Platform.OS === "android" ? "email" : "emailAddress"}
+          textContentType="username"
         />
 
         <Text style={[styles.label, { marginTop: 16 }]}>Contraseña</Text>
@@ -64,6 +116,8 @@ export default function LoginScreen({ navigation }: Props) {
           style={styles.input}
           value={password}
           onChangeText={setPassword}
+          autoComplete={Platform.OS === "android" ? "password" : "password"}
+          textContentType="password"
         />
 
         <Animated.View
@@ -87,6 +141,23 @@ export default function LoginScreen({ navigation }: Props) {
           <Text style={styles.registerText}>¿No tienes cuenta? Regístrate</Text>
         </TouchableOpacity>
       </View>
+
+      <SuccessModal
+        visible={successVisible}
+        onClose={() => {
+          setSuccessVisible(false);
+          navigation.replace("Home");
+        }}
+        title="Login exitoso"
+        message="Has iniciado sesión correctamente"
+      />
+
+      <WarningModal
+        visible={warningVisible}
+        onClose={() => setWarningVisible(false)}
+        title="Login fallido"
+        message={warningMessage}
+      />
     </KeyboardAvoidingView>
   );
 }

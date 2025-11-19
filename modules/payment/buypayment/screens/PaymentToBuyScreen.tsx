@@ -15,9 +15,9 @@ import { Ionicons } from "@expo/vector-icons";
 import ENV from "../../../../config/env";
 import SuccessModal from "../../../../components/SuccessModal";
 import WarningModal from "../../../../components/WarningModal";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const COLORS = ["#171717", "#1E3A8A", "#1fac84ff", "#dd3737ff"];
-const USER_ID = "45224151-7b09-45ff-835b-413062c2e815";
 
 const PaymentToBuyScreen = () => {
   const [cards, setCards] = useState<
@@ -30,7 +30,7 @@ const PaymentToBuyScreen = () => {
     }[]
   >([]);
   const [selectedCard, setSelectedCard] = useState<string | null>(null);
-
+  const [userId, setUserId] = useState<string | null>(null);
   const [successVisible, setSuccessVisible] = useState(false);
   const [warningVisible, setWarningVisible] = useState(false);
   const [modalTitle, setModalTitle] = useState("");
@@ -60,13 +60,22 @@ const PaymentToBuyScreen = () => {
     return planDisplayNames[plan] || "Básico";
   };
 
+  const loadUserId = async () => {
+    const cachedId = await AsyncStorage.getItem("userId");
+    if (cachedId) setUserId(cachedId);
+  };
+
+  useEffect(() => {
+    loadUserId();
+  }, []);
+
   const fetchCards = async () => {
+    if (!userId) return;
     try {
       const response = await fetch(
-        `${ENV.PAYMENT_SERVICE}/payment/methods/user/${USER_ID}`
+        `${ENV.PAYMENT_SERVICE}/payment/methods/user/${userId}`
       );
       const data = await response.json();
-
       const cardsWithColor = data.map((item: any) => ({
         id: item.id,
         userId: item.userId,
@@ -74,11 +83,9 @@ const PaymentToBuyScreen = () => {
         isDefault: item.isDefault,
         color: COLORS[Math.floor(Math.random() * COLORS.length)],
       }));
-
       setCards(cardsWithColor);
       if (cardsWithColor.length > 0) setSelectedCard(cardsWithColor[0].id);
     } catch (err) {
-      console.error("Error al obtener tarjetas:", err);
       setModalTitle("Error");
       setModalMessage("No se pudieron cargar las tarjetas.");
       setWarningVisible(true);
@@ -86,39 +93,33 @@ const PaymentToBuyScreen = () => {
   };
 
   useEffect(() => {
-    fetchCards();
-  }, []);
+    if (userId) fetchCards();
+  }, [userId]);
 
   const crearSuscripcion = async () => {
+    if (!userId) return;
     try {
       const nuevaSuscripcion = {
-        userId: USER_ID,
+        userId: userId,
         namePlan: plan,
       };
-
       const response = await fetch(`${ENV.USER_SERVICE}/suscriptions`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(nuevaSuscripcion),
       });
-
       const data = await response.json().catch(() => ({}));
-
       if (!response.ok) {
         const backendError =
-          data?.message ||
-          data?.error ||
-          "Error al crear la suscripción. No tienes metodos de pago";
+          data?.message || data?.error || "Error al crear la suscripción";
         throw new Error(backendError);
       }
-
       setModalTitle("Éxito");
       setModalMessage(
         `Suscripción ${getPlanDisplayName(plan)} activada correctamente.`
       );
       setSuccessVisible(true);
     } catch (err: any) {
-   
       setModalTitle("Error");
       setModalMessage(err.message || "Error desconocido al crear suscripción.");
       setWarningVisible(true);

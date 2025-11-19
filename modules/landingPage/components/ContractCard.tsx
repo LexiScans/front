@@ -35,7 +35,6 @@ const ContractCard: React.FC<ContractCardProps> = ({
   return (
     <TouchableOpacity activeOpacity={0.88} onPress={onPress}>
       <View style={[styles.card, { borderColor: statusInfo.color }]}>
-        {/* Header del contrato */}
         <View style={styles.header}>
           <View style={styles.iconContainer}>
             <Ionicons name="document-text-outline" size={26} color="#074468" />

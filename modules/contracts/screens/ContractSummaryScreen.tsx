@@ -45,6 +45,7 @@ const ContractSummaryScreen = () => {
 
   const handlePdfNavigation = async () => {
     try {
+      console.log(contractId);
       setLoading(true);
       const response = await fetch(
         `${ENV.PDF_SERVICE}/contracts/${contractId}/signed-url`,
@@ -56,10 +57,10 @@ const ContractSummaryScreen = () => {
       if (!response.ok) throw new Error("Error al obtener el contrato");
       const data = await response.json();
       const url = data.signedUrl;
-    
+
       if (url) {
         navigation.navigate("PdfViewer", { pdfUrl: url });
-      } 
+      }
     } catch (err: any) {
       console.error(err);
       Alert.alert("Error", "No se pudo cargar el PDF del contrato");

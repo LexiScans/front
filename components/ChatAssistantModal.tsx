@@ -16,6 +16,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import * as Speech from "expo-speech";
+import ENV from "../config/env";
 
 const { height } = Dimensions.get("window");
 
@@ -103,14 +104,17 @@ const ChatAssistantModal = ({ visible, onClose }) => {
 
   const askBackend = async (question) => {
     try {
-      const response = await fetch("http://10.0.2.2:8000/ask", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          question,
-          contract_id: "contrato para lexisacn.pdf",
-        }),
-      });
+      const response = await fetch(
+        "https://485t7d4i73.execute-api.us-east-1.amazonaws.com/develop/ia/ask",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            question,
+            contract_id: "contrato2.pdf",
+          }),
+        }
+      );
       if (!response.ok) throw new Error(`Error: ${response.status}`);
       const data = await response.json();
       return data.answer;

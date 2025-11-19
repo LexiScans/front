@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -13,6 +13,7 @@ import { ContractDatePicker } from "./ContractDatePicker";
 import { useNavigation } from "@react-navigation/native";
 import { useContractForm } from "../../hooks/contractDetails/useContractForm";
 import ENV from "../../../../config/env";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import SuccessModal from "../../../../components/SuccessModal";
 import WarningModal from "../../../../components/WarningModal";
 
@@ -49,11 +50,28 @@ export const ContractForm = ({ fileUri, fileName }: ContractFormProps) => {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showWarningModal, setShowWarningModal] = useState(false);
   const [warningMessage, setWarningMessage] = useState("");
-  const [contractId, setContractId] = useState<string | null>(null); 
+  const [contractId, setContractId] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const loadUserId = async () => {
+      const storedUserId = await AsyncStorage.getItem("userId");
+      if (storedUserId) setUserId(storedUserId);
+    };
+    loadUserId();
+  }, []);
 
   const uploadContract = async () => {
     if (!fileUri || !fileName) {
       setWarningMessage("Debes seleccionar un archivo primero.");
+      setShowWarningModal(true);
+      return;
+    }
+
+    if (!userId) {
+      setWarningMessage(
+        "No se pudo obtener tu usuario. Por favor inicia sesión de nuevo."
+      );
       setShowWarningModal(true);
       return;
     }
@@ -67,7 +85,7 @@ export const ContractForm = ({ fileUri, fileName }: ContractFormProps) => {
         name: fileName,
         type: "application/pdf",
       } as any);
-      formData.append("userId", "45224151-7b09-45ff-835b-413062c2e815");
+      formData.append("userId", userId);
       formData.append("type", tipo || "SERVICIOS");
 
       const response = await fetch(`${ENV.PDF_SERVICE}/contracts/upload`, {
@@ -83,15 +101,10 @@ export const ContractForm = ({ fileUri, fileName }: ContractFormProps) => {
       }
 
       const data = await response.json();
-      console.log("Contrato subido:", data);
 
-      if (data?.id) {
-        setContractId(data.id);
-      }
-
+      if (data?.id) setContractId(data.id);
       setShowSuccessModal(true);
     } catch (error: any) {
-      console.error(error);
       setWarningMessage(error.message || "Error al subir el contrato");
       setShowWarningModal(true);
     } finally {
