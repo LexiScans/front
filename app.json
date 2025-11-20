@@ -13,7 +13,8 @@
       "backgroundColor": "#074468ff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.anonymous.lexiscans"
     },
     "android": {
       "adaptiveIcon": {
@@ -27,7 +28,9 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "plugins": ["expo-font"],
+    "plugins": [
+      "expo-font"
+    ],
     "extra": {
       "APP_ENV": "production",
       "eas": {

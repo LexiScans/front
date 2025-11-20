@@ -7,7 +7,9 @@
     "dev": "expo start -c",
     "prod": "expo start --no-dev --minify",
     "build:dev": "eas build --profile development",
-    "build:prod": "eas build --profile production"
+    "build:prod": "eas build --profile production",
+    "android": "expo run:android",
+    "ios": "expo run:ios"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.2",
