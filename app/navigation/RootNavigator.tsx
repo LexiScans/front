@@ -19,6 +19,7 @@ import PrivacyPolicyScreen from "../../modules/settings/screens/PrivacyPolicyScr
 import SupportScreen from "../../modules/settings/screens/SupportScreen";
 import DetallesContrato from "../../modules/uploadContract/screens/contractDetails";
 import UploadSuccess from "../../modules/uploadContract/screens/UploadSuccess";
+import ForgotPasswordScreen from "../../modules/auth/ForgotPassword/screen/ForgotPasswordScreen";
 
 type RootStackParamList = {
   Welcome: undefined;
@@ -40,6 +41,7 @@ type RootStackParamList = {
   DetallesContrato: undefined;
   PrevisualizacionContrato: undefined;
   UploadSuccess: undefined;
+  ForgotPassword: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -52,6 +54,7 @@ export default function RootNavigator() {
     >
       <Stack.Screen name="Welcome" component={WelcomeScreen} />
       <Stack.Screen name="Login" component={LoginScreen} />
+      <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
       <Stack.Screen name="Home" component={HomeScreen} />
       <Stack.Screen name="Register" component={RegisterScreen} />
       <Stack.Screen name="Profile" component={ProfileScreen} />

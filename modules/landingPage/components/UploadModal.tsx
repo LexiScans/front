@@ -19,7 +19,6 @@ import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
 
-// 👇 Ajuste del tipo con los parámetros esperados
 type RootStackParamList = {
   Home: undefined;
   ContractSummary: undefined;

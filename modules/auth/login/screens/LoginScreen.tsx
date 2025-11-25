@@ -8,19 +8,20 @@ import {
   KeyboardAvoidingView,
   Platform,
   Animated,
-  Alert,
 } from "react-native";
 import { Colors } from "../../../../theme";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import SuccessModal from "../../../../components/SuccessModal";
 import WarningModal from "../../../../components/WarningModal";
+import { Ionicons } from "@expo/vector-icons";
 
 type Props = NativeStackScreenProps<any, any>;
 
 export default function LoginScreen({ navigation }: Props) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [passwordVisible, setPasswordVisible] = useState(false);
   const [successVisible, setSuccessVisible] = useState(false);
   const [warningVisible, setWarningVisible] = useState(false);
   const [warningMessage, setWarningMessage] = useState("");
@@ -33,9 +34,7 @@ export default function LoginScreen({ navigation }: Props) {
         const savedPassword = await AsyncStorage.getItem("savedPassword");
         if (savedEmail) setEmail(savedEmail);
         if (savedPassword) setPassword(savedPassword);
-      } catch (err) {
-        console.log("Error loading saved credentials", err);
-      }
+      } catch {}
     };
     loadSavedCredentials();
   }, []);
@@ -57,7 +56,7 @@ export default function LoginScreen({ navigation }: Props) {
     }
 
     try {
-      const res = await fetch("http://10.0.2.2:8079/auth/login", {
+      const res = await fetch("https://lexyscan.duckdns.org/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -74,7 +73,6 @@ export default function LoginScreen({ navigation }: Props) {
       await AsyncStorage.setItem("idToken", data.idToken);
       await AsyncStorage.setItem("userId", data.userId);
       await AsyncStorage.setItem("savedEmail", email);
-
 
       setSuccessVisible(true);
     } catch (err: any) {
@@ -109,16 +107,35 @@ export default function LoginScreen({ navigation }: Props) {
         />
 
         <Text style={[styles.label, { marginTop: 16 }]}>Contraseña</Text>
-        <TextInput
-          placeholder="••••••••"
-          placeholderTextColor="#9AA9B3"
-          secureTextEntry
-          style={styles.input}
-          value={password}
-          onChangeText={setPassword}
-          autoComplete={Platform.OS === "android" ? "password" : "password"}
-          textContentType="password"
-        />
+        <View style={styles.passwordContainer}>
+          <TextInput
+            placeholder="••••••••"
+            placeholderTextColor="#9AA9B3"
+            secureTextEntry={!passwordVisible}
+            style={styles.passwordInput}
+            value={password}
+            onChangeText={setPassword}
+            autoComplete={Platform.OS === "android" ? "password" : "password"}
+            textContentType="password"
+          />
+          <TouchableOpacity
+            onPress={() => setPasswordVisible(!passwordVisible)}
+            style={styles.eyeButton}
+          >
+            <Ionicons
+              name={passwordVisible ? "eye-off-outline" : "eye-outline"}
+              size={22}
+              color="#6A6A6A"
+            />
+          </TouchableOpacity>
+        </View>
+
+        <TouchableOpacity
+          onPress={() => navigation.navigate("ForgotPassword")}
+          style={{ marginTop: 8, alignSelf: "flex-end" }}
+        >
+          <Text style={styles.forgot}>¿Olvidaste tu contraseña?</Text>
+        </TouchableOpacity>
 
         <Animated.View
           style={{ transform: [{ scale: btnScale }], marginTop: 24 }}
@@ -188,6 +205,27 @@ const styles = StyleSheet.create({
     backgroundColor: "#F2F6F8",
     paddingHorizontal: 12,
     color: Colors.text,
+  },
+  passwordContainer: {
+    height: 46,
+    borderRadius: 10,
+    backgroundColor: "#F2F6F8",
+    flexDirection: "row",
+    alignItems: "center",
+    paddingRight: 10,
+  },
+  passwordInput: {
+    flex: 1,
+    paddingHorizontal: 12,
+    color: Colors.text,
+  },
+  eyeButton: {
+    paddingHorizontal: 6,
+  },
+  forgot: {
+    color: Colors.accent,
+    fontWeight: "600",
+    fontSize: 13,
   },
   loginButton: {
     height: 50,

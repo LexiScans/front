@@ -31,6 +31,7 @@ const PaymentMethodsScreen = () => {
   >([]);
   const [selectedCard, setSelectedCard] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
+  const [customerStripeId, setCustomerStripeId] = useState<string | null>(null);
   const navigation = useNavigation();
   const [successVisible, setSuccessVisible] = useState(false);
   const [warningVisible, setWarningVisible] = useState(false);
@@ -57,8 +58,26 @@ const PaymentMethodsScreen = () => {
     setWarningVisible(true);
   };
 
-  const fetchCards = async () => {
+  const fetchCustomerAndCards = async () => {
     if (!userId) return;
+
+    let fetchedCustomerId: string | null = null;
+
+    try {
+      const customerRes = await fetch(
+        `${ENV.USER_SERVICE}/users/customerId/${userId}`
+      );
+      if (!customerRes.ok) throw new Error("Error al obtener customerId");
+      const customerData = await customerRes.json();
+      fetchedCustomerId = customerData.customerId;
+      setCustomerStripeId(fetchedCustomerId);
+    } catch (err) {
+      console.error("Error al obtener customerId:", err);
+      showWarning("Error", "No se pudo obtener el ID de cliente de Stripe.");
+      return;
+    }
+
+    if (!fetchedCustomerId) return;
     try {
       const response = await fetch(
         `${ENV.PAYMENT_SERVICE}/payment/methods/user/${userId}`
@@ -83,15 +102,15 @@ const PaymentMethodsScreen = () => {
 
   useFocusEffect(
     useCallback(() => {
-      fetchCards();
+      fetchCustomerAndCards();
     }, [userId])
   );
 
   const handleSelect = async () => {
-    if (!selectedCard || !userId) {
+    if (!selectedCard || !userId || !customerStripeId) {
       showWarning(
         "Error",
-        "No hay tarjeta seleccionada o usuario no disponible."
+        "No hay tarjeta seleccionada, usuario o ID de cliente no disponible."
       );
       return;
     }
@@ -99,7 +118,7 @@ const PaymentMethodsScreen = () => {
     try {
       const changeMethod = {
         userId,
-        customerId: "cus_T94eOMGUfePnLl",
+        customerId: customerStripeId,
         id: selectedCard,
       };
 
@@ -114,7 +133,7 @@ const PaymentMethodsScreen = () => {
 
       if (!response.ok) throw new Error("Error al cambiar método de pago");
       showSuccess("Éxito", "Método de pago actualizado correctamente.");
-      fetchCards();
+      fetchCustomerAndCards();
     } catch (err: any) {
       showWarning("Error", err.message);
     }
@@ -133,7 +152,7 @@ const PaymentMethodsScreen = () => {
       );
       if (!response.ok) throw new Error("Error al eliminar tarjeta");
       showSuccess("Éxito", "Método de pago eliminado correctamente.");
-      fetchCards();
+      fetchCustomerAndCards();
     } catch (err: any) {
       showWarning("Error", err.message);
     }

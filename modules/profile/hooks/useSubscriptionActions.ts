@@ -13,10 +13,26 @@ export const useSubscriptionActions = (
         `${ENV.USER_SERVICE}/suscriptions/cancel/${userId}`,
         { method: "DELETE" }
       );
-      if (!response.ok) throw new Error("Error al cancelar suscripción");
+
+      if (!response.ok) {
+        const text = await response.text().catch(() => null);
+
+        let errorMessage = "Error al cancelar suscripción";
+
+        try {
+          const json = JSON.parse(text);
+          errorMessage = json.error || errorMessage;
+        } catch {
+          if (text) errorMessage = text;
+        }
+
+        throw new Error(errorMessage);
+      }
+
       setUser({ ...user!, suscription: undefined });
     } catch (err: any) {
-      setErrorModal(err.message);
+      console.error("❌ ERROR cancelSubscription:", err);
+      setErrorModal(err.message || "Error desconocido");
     }
   };
 

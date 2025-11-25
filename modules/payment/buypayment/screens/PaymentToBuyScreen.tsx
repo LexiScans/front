@@ -17,27 +17,19 @@ import SuccessModal from "../../../../components/SuccessModal";
 import WarningModal from "../../../../components/WarningModal";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const COLORS = ["#171717", "#1E3A8A", "#1fac84ff", "#dd3737ff"];
+const COLORS = ["#dd3737ff", "#1E3A8A", "#1fac84ff", "#171717"];
 
 const PaymentToBuyScreen = () => {
-  const [cards, setCards] = useState<
-    {
-      userId: string;
-      last4: string;
-      color: string;
-      id: string;
-      isDefault: boolean;
-    }[]
-  >([]);
-  const [selectedCard, setSelectedCard] = useState<string | null>(null);
-  const [userId, setUserId] = useState<string | null>(null);
+  const [cards, setCards] = useState([]);
+  const [selectedCard, setSelectedCard] = useState(null);
+  const [userId, setUserId] = useState(null);
   const [successVisible, setSuccessVisible] = useState(false);
   const [warningVisible, setWarningVisible] = useState(false);
   const [modalTitle, setModalTitle] = useState("");
   const [modalMessage, setModalMessage] = useState("");
 
   const route = useRoute();
-  const { plan } = route.params as { plan: string };
+  const { plan } = route.params;
   const navigation = useNavigation();
 
   const planPrices = {
@@ -52,11 +44,11 @@ const PaymentToBuyScreen = () => {
     FULL: "Full",
   };
 
-  const getPlanPrice = (planType: string) => {
+  const getPlanPrice = () => {
     return planPrices[plan] || "$4.99";
   };
 
-  const getPlanDisplayName = (planType: string) => {
+  const getPlanDisplayName = () => {
     return planDisplayNames[plan] || "Básico";
   };
 
@@ -76,12 +68,14 @@ const PaymentToBuyScreen = () => {
         `${ENV.PAYMENT_SERVICE}/payment/methods/user/${userId}`
       );
       const data = await response.json();
-      const cardsWithColor = data.map((item: any) => ({
+      const sorted = data.sort((a, b) => a.id.localeCompare(b.id));
+      const cardsWithColor = sorted.map((item, index) => ({
         id: item.id,
         userId: item.userId,
         last4: item.last4,
         isDefault: item.isDefault,
-        color: COLORS[Math.floor(Math.random() * COLORS.length)],
+        paymentId: item.paymentId,
+        color: COLORS[index % COLORS.length],
       }));
       setCards(cardsWithColor);
       if (cardsWithColor.length > 0) setSelectedCard(cardsWithColor[0].id);
@@ -97,29 +91,43 @@ const PaymentToBuyScreen = () => {
   }, [userId]);
 
   const crearSuscripcion = async () => {
-    if (!userId) return;
+    if (!userId || !selectedCard) return;
+
+    const selected = cards.find((c) => c.id === selectedCard);
+    if (!selected) {
+      setModalTitle("Error");
+      setModalMessage("No se pudo encontrar la tarjeta seleccionada.");
+      setWarningVisible(true);
+      return;
+    }
+
     try {
       const nuevaSuscripcion = {
         userId: userId,
         namePlan: plan,
+        paymentMethodId: selected.paymentId,
       };
+
       const response = await fetch(`${ENV.USER_SERVICE}/suscriptions`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(nuevaSuscripcion),
       });
+
       const data = await response.json().catch(() => ({}));
+
       if (!response.ok) {
         const backendError =
           data?.message || data?.error || "Error al crear la suscripción";
         throw new Error(backendError);
       }
+
       setModalTitle("Éxito");
       setModalMessage(
-        `Suscripción ${getPlanDisplayName(plan)} activada correctamente.`
+        `Suscripción ${getPlanDisplayName()} activada correctamente.`
       );
       setSuccessVisible(true);
-    } catch (err: any) {
+    } catch (err) {
       setModalTitle("Error");
       setModalMessage(err.message || "Error desconocido al crear suscripción.");
       setWarningVisible(true);
@@ -145,8 +153,8 @@ const PaymentToBuyScreen = () => {
 
         <View style={styles.planOverview}>
           <View style={styles.planItem}>
-            <Text style={styles.planName}>{getPlanDisplayName(plan)}</Text>
-            <Text style={styles.planPrice}>{getPlanPrice(plan)}</Text>
+            <Text style={styles.planName}>{getPlanDisplayName()}</Text>
+            <Text style={styles.planPrice}>{getPlanPrice()}</Text>
             <Text style={styles.planPeriod}>/mes</Text>
           </View>
         </View>
@@ -181,7 +189,7 @@ const PaymentToBuyScreen = () => {
 
         <TouchableOpacity style={styles.payButton} onPress={crearSuscripcion}>
           <Text style={styles.payButtonText}>
-            Confirmar Pago - {getPlanPrice(plan)}/mes
+            Confirmar Pago - {getPlanPrice()}/mes
           </Text>
         </TouchableOpacity>
       </ScrollView>

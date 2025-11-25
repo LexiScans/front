@@ -37,20 +37,43 @@ export default function HomeScreen() {
   const [contracts, setContracts] = useState<Contract[]>([]);
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
+  const [name, setName] = useState<string | null>(null);
 
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   useEffect(() => {
-    const loadUserId = async () => {
+    const loadUserData = async () => {
       const storedUserId = await AsyncStorage.getItem("userId");
-      if (storedUserId) {
-        setUserId(storedUserId);
-      } else {
+      const storedName = await AsyncStorage.getItem("userName");
+
+      if (!storedUserId) {
         navigation.navigate("Login");
+        return;
       }
+
+      setUserId(storedUserId);
+
+      if (storedName) {
+        setName(storedName);
+        return;
+      }
+
+      try {
+        const response = await fetch(
+          `${ENV.USER_SERVICE}/users/${storedUserId}`,
+          { method: "GET" }
+        );
+
+        if (!response.ok) return;
+
+        const data = await response.json();
+        setName(data.name);
+        await AsyncStorage.setItem("userName", data.name);
+      } catch (error) {}
     };
-    loadUserId();
+
+    loadUserData();
   }, [navigation]);
 
   const fetchContracts = async () => {
@@ -59,11 +82,10 @@ export default function HomeScreen() {
       const response = await fetch(
         `${ENV.PDF_SERVICE}/contracts/user/${userId}`
       );
-      if (!response.ok) throw new Error("Error al obtener contratos");
+      if (!response.ok) return;
       const data: Contract[] = await response.json();
       setContracts(data);
     } catch (error) {
-      console.error(error);
     } finally {
       setLoading(false);
     }
@@ -76,7 +98,6 @@ export default function HomeScreen() {
   }, [userId]);
 
   const openPdfViewer = (contractId: string) => {
-    console.log(contractId);
     navigation.navigate("ContractSummary", { contractId: contractId });
   };
 
@@ -88,7 +109,7 @@ export default function HomeScreen() {
       <SafeAreaView style={styles.container}>
         <StatusBar barStyle="dark-content" backgroundColor="#f8fbff" />
         <View style={styles.header}>
-          <Text style={styles.hi}>Hola, Santiago 👋</Text>
+          <Text style={styles.hi}>Hola, {name ?? "Usuario"} 👋</Text>
           <Text style={styles.small}>
             Bienvenido a tu espacio de{" "}
             <Text style={styles.brandAccent}>contratos inteligentes</Text>

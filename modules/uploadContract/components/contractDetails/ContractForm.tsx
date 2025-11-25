@@ -62,47 +62,43 @@ export const ContractForm = ({ fileUri, fileName }: ContractFormProps) => {
   }, []);
 
   const uploadContract = async () => {
-    if (!fileUri || !fileName) {
-      setWarningMessage("Debes seleccionar un archivo primero.");
-      setShowWarningModal(true);
-      return;
-    }
-
-    if (!userId) {
-      setWarningMessage(
-        "No se pudo obtener tu usuario. Por favor inicia sesión de nuevo."
-      );
-      setShowWarningModal(true);
-      return;
-    }
-
     try {
       setLoading(true);
 
       const formData = new FormData();
       formData.append("file", {
         uri: fileUri,
-        name: fileName,
         type: "application/pdf",
-      } as any);
+        name: fileName,
+      });
       formData.append("userId", userId);
       formData.append("type", tipo || "SERVICIOS");
+      formData.append("name", "test345");
 
       const response = await fetch(`${ENV.PDF_SERVICE}/contracts/upload`, {
         method: "POST",
-        headers: { "Content-Type": "multipart/form-data" },
         body: formData,
       });
 
       if (!response.ok) {
-        setWarningMessage("Error al subir el contrato");
+        let backendError = "Error al subir el contrato";
+
+        try {
+          const errorData = await response.json();
+          if (errorData?.message) {
+            backendError = errorData.message;
+          }
+        } catch (err) {
+        }
+
+        setWarningMessage(backendError);
         setShowWarningModal(true);
         return;
       }
 
       const data = await response.json();
-
       if (data?.id) setContractId(data.id);
+
       setShowSuccessModal(true);
     } catch (error: any) {
       setWarningMessage(error.message || "Error al subir el contrato");

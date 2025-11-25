@@ -48,24 +48,35 @@ const AddPaymentMethodScreen = ({ navigation }: any) => {
     }
 
     if (!userId) {
-      showWarning("No se pudo obtener tu usuario. Por favor inicia sesión de nuevo.");
+      showWarning(
+        "No se pudo obtener tu usuario. Por favor inicia sesión de nuevo."
+      );
       return;
     }
 
     try {
+      const customerRes = await fetch(
+        `${ENV.USER_SERVICE}/users/customerId/${userId}`
+      );
+
+      if (!customerRes.ok) throw new Error("Error al obtener customerId");
+      const customerData = await customerRes.json();
+      const customerId = customerData.customerId;
+
       const response = await fetch(
-        `${ENV.PAYMENT_SERVICE}/payment/create-setup-intent?customerId=cus_T94eOMGUfePnLl`,
+        `${ENV.PAYMENT_SERVICE}/payment/create-setup-intent/${customerId}`,
         { method: "POST" }
       );
 
       const data = await response.json();
-
       if (!response.ok)
         throw new Error(data.message || "Error al obtener el clientSecret");
 
       const { setupIntent, error } = await confirmSetupIntent(
         data.clientSecret,
-        { paymentMethodType: "Card" }
+        {
+          paymentMethodType: "Card",
+        }
       );
 
       if (error) {
@@ -76,7 +87,7 @@ const AddPaymentMethodScreen = ({ navigation }: any) => {
       if (setupIntent) {
         const addMethodBody = {
           userId: userId,
-          customerId: "cus_T94eOMGUfePnLl",
+          customerId: customerId,
           paymentMethodId: setupIntent.paymentMethodId,
           defaultPayment: true,
         };
@@ -198,18 +209,82 @@ const styles = StyleSheet.create({
   headerTitle: { fontSize: 22, fontWeight: "700", color: "#0b2e42ff" },
   placeholder: { width: 40 },
   brandContainer: { marginBottom: 25 },
-  brandText: { fontSize: 18, color: "#0b2e42ff", fontWeight: "700", textAlign: "center", marginBottom: 8 },
-  divider: { height: 2, backgroundColor: "#0b2e42ff", width: "30%", alignSelf: "center", borderRadius: 2 },
-  subtitle: { fontSize: 16, color: "#6B7280", textAlign: "center", marginBottom: 30, lineHeight: 22 },
+  brandText: {
+    fontSize: 18,
+    color: "#0b2e42ff",
+    fontWeight: "700",
+    textAlign: "center",
+    marginBottom: 8,
+  },
+  divider: {
+    height: 2,
+    backgroundColor: "#0b2e42ff",
+    width: "30%",
+    alignSelf: "center",
+    borderRadius: 2,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: "#6B7280",
+    textAlign: "center",
+    marginBottom: 30,
+    lineHeight: 22,
+  },
   cardSection: { marginBottom: 40 },
-  cardLabel: { flexDirection: "row", alignItems: "center", marginBottom: 15, paddingLeft: 5 },
-  cardLabelText: { fontSize: 16, fontWeight: "600", color: "#0b2e42ff", marginLeft: 8 },
-  card: { backgroundColor: "#FFFFFF", textColor: "#111827", borderColor: "#e5e7eb", borderWidth: 1, borderRadius: 8 },
+  cardLabel: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 15,
+    paddingLeft: 5,
+  },
+  cardLabelText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#0b2e42ff",
+    marginLeft: 8,
+  },
+  card: {
+    backgroundColor: "#FFFFFF",
+    textColor: "#111827",
+    borderColor: "#e5e7eb",
+    borderWidth: 1,
+    borderRadius: 8,
+  },
   cardContainer: { height: 50 },
-  button: { backgroundColor: "#0b2e42ff", paddingVertical: 16, borderRadius: 12, alignItems: "center", flexDirection: "row", justifyContent: "center", gap: 8, shadowColor: "#0b2e42ff", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 6, marginBottom: 20 },
+  button: {
+    backgroundColor: "#0b2e42ff",
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: 8,
+    shadowColor: "#0b2e42ff",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
+    marginBottom: 20,
+  },
   disabledButton: { backgroundColor: "#9CA3AF", shadowColor: "transparent" },
   buttonText: { color: "#fff", fontWeight: "600", fontSize: 16 },
-  securityNote: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, padding: 12, backgroundColor: "#f0f9ff", borderRadius: 8, borderWidth: 1, borderColor: "#0b2e42ff" },
-  securityText: { fontSize: 14, color: "#0b2e42ff", fontWeight: "500", flex: 1, textAlign: "center" },
+  securityNote: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    padding: 12,
+    backgroundColor: "#f0f9ff",
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#0b2e42ff",
+  },
+  securityText: {
+    fontSize: 14,
+    color: "#0b2e42ff",
+    fontWeight: "500",
+    flex: 1,
+    textAlign: "center",
+  },
   bottomSpacer: { height: 60 },
 });
